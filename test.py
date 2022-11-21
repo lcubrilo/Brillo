@@ -19,12 +19,11 @@ namesOfVariables = []
 with open("BSFO13_RS820_10-150kVcm_RT.dat") as f:
     i = 0
     for line in f:
-        #print("eoga ", i, line)
-        i += 1
-        if i == 86:
+        i += 1; print(i, line)
+        if i == 86: # TODO Magic value - which lines are useful to us
             namesOfVariables = line.split(']	'); continue
         if i < 87:
-            print(i, "alo") 
+            #print(i, "alo") 
             continue
 
         for readData, storageOfValues in zip(line.split(), measuredVariables):
@@ -33,9 +32,9 @@ with open("BSFO13_RS820_10-150kVcm_RT.dat") as f:
             except:
                 break
 
-fig, axs = plt.subplots(3, 4)
+fig, axs = plt.subplots(3, 4) #TODO Magic value - how many plots we want
 i=0
-for nameOfValues, storageOfValues in zip(namesOfVariables[1:], measuredVariables[1:]):
+for nameOfValues, storageOfValues in zip(namesOfVariables[1:], measuredVariables[1:]): #TODO Magic value - what is x what is y axis
     i += 1
     axs[i%4-1][i//4].plot(Time, storageOfValues, label=nameOfValues+"]")
     #axs[i%4-1][i//4].plot(Time, storageOfValues, ylabel=nameOfValues+"]", xlabel=namesOfVariables[1]+"]")
