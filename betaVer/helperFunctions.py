@@ -79,7 +79,7 @@ def splitData(x_axis, y_axis):
     
     return x_splits, y_splits
 
-def distances(x_axis, y_axis, shouldIRound = True):
+def distances(x_axis, y_axis, shouldIRound = True,  showEuclidean=False):
     if len(x_axis) != len(y_axis):
         raise Exception("Nisu jednake ose. x - {}, y - {}".format(len(x_axis), len(y_axis)))
     else: 
@@ -96,29 +96,31 @@ def distances(x_axis, y_axis, shouldIRound = True):
         B = [x_axis[i+1], y_axis[i+1]]
         distances.append(euclideanDistance(A, B))
     
-    #Distances je niz udaljenosti susednih tacaka
-    coef = distances[-1]/distances[1]
-    #distances = [coef*distances[i]/i**0.4 for i in range(1, len(distances))]
+    if showEuclidean:
+        #Distances je niz udaljenosti susednih tacaka
+        coef = distances[-1]/distances[1]
+        #distances = [coef*distances[i]/i**0.4 for i in range(1, len(distances))]
 
-    fig, axs = plt.subplots()
-    axs.scatter(range(n-1), distances)
-    # f(x) (gde je x broj reda u tabeli tj index tačke) = euklidska udaljenost od tačke x+1
+        fig, axs = plt.subplots()
+        axs.scatter(range(n-1), distances)
+        # f(x) (gde je x broj reda u tabeli tj index tačke) = euklidska udaljenost od tačke x+1
 
     # Show when it is positive and when it is negative
     """maxx, minn = max(distances), min(distances)
     axs.scatter([el+0.5 for el in range(n)], [maxx if el > 0 else minn for el in x_axis])"""
 
     x_splitted, y_splitted = splitData(x_axis, y_axis)
-    axs.set_title("There are {} detected disjunct subarrays using the NAP method".format(len(x_splitted)))
+    if showEuclidean:
+        axs.set_title("There are {} detected disjunct subarrays using the NAP method".format(len(x_splitted)))
 
     # Show sign changes with vertical lines
     gottenIndeces = getIndeces(x_splitted, y_splitted)
     for el in gottenIndeces:
-        plt.axvline(x = el, color = 'b', label = 'promena znaka')
+        if showEuclidean: plt.axvline(x = el, color = 'b', label = 'promena znaka')
     
     offsetted = guessOppositeIndeces(getIndeces(x_splitted, y_splitted))
     for el in offsetted:
-        plt.axvline(x = el, color = 'r', label = 'pi offset')
+        if showEuclidean: plt.axvline(x = el, color = 'r', label = 'pi offset')
 
 
     # Pick the one that actually hits the peaks
@@ -134,9 +136,10 @@ def distances(x_axis, y_axis, shouldIRound = True):
 
     interpolated = interpolateRemaining(chosenIndeces)
     for el in interpolated:
-        plt.axvline(x = el, color = 'g', label = 'interpolated')
+        if showEuclidean: plt.axvline(x = el, color = 'g', label = 'interpolated')
 
-    plt.plot()
+    if showEuclidean:
+        plt.plot()
 
     return interpolated
     #return distances if not shouldIRound else [round(el, 2) for el in distances]
