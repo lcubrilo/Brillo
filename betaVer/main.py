@@ -3,7 +3,7 @@ from helperFunctions import loadTable, plotData
 allMeasurements = loadTable("data/BSFO13_RS820_10-150kVcm_RT.dat")
 namesOfVariables, measuredVariables = list(allMeasurements.keys()), list(allMeasurements.values())
 
-print("The following measurements have been detected from the table: ")
+print("START\n-----\nThe following measurements have been detected from the table: ")
 for name in namesOfVariables:
     print("\t {} - {} entries".format(name, len(allMeasurements[name])))
 
@@ -28,7 +28,7 @@ def axesForThisSpecificUseCase():
 
 plots = axesForThisSpecificUseCase()
 for x_axis in plots:
-    print("Plotting the following data in terms of: {}".format(x_axis))
+    print("--------------\nPlotting the following data in terms of: {}".format(x_axis))
     for y_axis in plots[x_axis]:
         print("|\t", y_axis)
 
