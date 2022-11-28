@@ -1,6 +1,6 @@
 from helperFunctions import loadTable, plotData
 
-allMeasurements = loadTable("BSFO13_RS820_10-150kVcm_RT.dat")
+allMeasurements = loadTable("data/BSFO13_RS820_10-150kVcm_RT.dat")
 namesOfVariables, measuredVariables = list(allMeasurements.keys()), list(allMeasurements.values())
 
 print("The following measurements have been detected from the table: ")
