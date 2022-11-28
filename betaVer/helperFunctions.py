@@ -10,7 +10,7 @@ def pairwise(iterable):
     return zip(a, b)
 
 
-def loadTable(fileName, printData=False):
+def loadTable(fileName, printData=False, showData=True):
     with open(fileName) as f:
         i = 0
         for line in f:
@@ -29,6 +29,11 @@ def loadTable(fileName, printData=False):
                 except:
                     break
     
+    if showData:
+        print("\nThe following measurements/columns have been detected from {}: ".format(fileName))
+        for name in allMeasurements.keys():
+            print("\t {} - {} entries".format(name, len(allMeasurements[name])))
+
     return allMeasurements
 
 def getMeasurementTypes(line):
@@ -230,12 +235,16 @@ def ruptures(x, y, n):
     breaks = model.predict(n_bkps=n-1 if n > 0 else 0)
     return breaks"""
 
-def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=True):
+def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=True, partOfMultiple=False, figg=None, axss=None, unicolor=None):
     n, m = determineGridDimension(len(y_axes))
     if printIndexes: print("Dimensions {}×{}".format(n,m))
-    fig, axs = plt.subplots(n, m, squeeze=False) #TODO Magic value - how many plots we want
+    if figg == None: #or axss == None:
+        fig, axs = plt.subplots(n, m, squeeze=False)
+    else:
+        fig, axs = figg, axss
+
     i=0
-    for measurement in y_axes: #TODO Magic value - what is x what is y axis
+    for measurement in y_axes:
         x, y = i%n, i//n
 
         if printIndexes:
@@ -258,8 +267,12 @@ def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=Tr
             x_splitted, y_splitted = [allMeasurements[x_axis]], [allMeasurements[measurement]]
 
         for x_section, y_section in zip(x_splitted, y_splitted):
-            #axs[x][y].scatter(x_section, y_section, s=5) #gives dotted appearance
-            axs[x][y].plot(x_section, y_section) #connects lines
+            if unicolor == None:
+                #axs[x][y].scatter(x_section, y_section, s=5) #gives dotted appearance
+                axs[x][y].plot(x_section, y_section) #connects lines
+            else:
+                #axs[x][y].scatter(x_section, y_section, unicolor, s=5) #gives dotted appearance
+                axs[x][y].plot(x_section, y_section, unicolor) #connects lines
         
         axs[x][y].set_ylabel(measurement)
         #axs[i%4-1][i//4].plot(Time, storageOfValues, ylabel=nameOfValues+"]", xlabel=namesOfVariables[1]+"]")
@@ -279,4 +292,26 @@ def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=Tr
         
 
     fig.suptitle("Measurements as a function of {}".format(x_axis))
+
+    if not partOfMultiple:
+        plt.show()
+    else:
+        return fig, axs
+
+
+def plotMultiple(dictOfTables, x_axis, y_axes, dictOfColors = None):
+    if dictOfColors == None:
+        dictOfColors = {}
+        from matplotlib import colors
+        listOfColors = list(colors.TABLEAU_COLORS)
+        for i, k in enumerate(dictOfTables):
+            dictOfColors[k] = listOfColors[i%len(listOfColors)]
+
+    n, m = determineGridDimension(len(y_axes))
+    fig, axs = plt.subplots(n, m, squeeze=False)
+
+    for tableName in dictOfTables:
+        fig, axs = plotData(dictOfTables[tableName], x_axis, y_axes, partOfMultiple=True, figg=fig, axss=axs, unicolor=dictOfColors[tableName])
+    
     plt.show()
+
