@@ -235,7 +235,7 @@ def ruptures(x, y, n):
     breaks = model.predict(n_bkps=n-1 if n > 0 else 0)
     return breaks"""
 
-def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=True, partOfMultiple=False, figg=None, axss=None, unicolor=None):
+def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=True, partOfMultiple=False, figg=None, axss=None, unicolor=None, fileName=None):
     n, m = determineGridDimension(len(y_axes))
     if printIndexes: print("Dimensions {}×{}".format(n,m))
     if figg == None: #or axss == None:
@@ -290,8 +290,11 @@ def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=Tr
                 print("\t j. - ", allMeasurements[x_axis][j], allMeasurements[measurement][j])
         
         
-
-    fig.suptitle("Measurements as a function of {}".format(x_axis))
+    if fileName == None: 
+        fileName = ""
+    else:
+        fileName = fileName.split("\\")[-1] #fileName.split("/")[-1]
+    fig.suptitle("{} - Measurements as a function of {}".format(fileName, x_axis))
 
     if not partOfMultiple:
         plt.show()
@@ -310,8 +313,11 @@ def plotMultiple(dictOfTables, x_axis, y_axes, dictOfColors = None):
     n, m = determineGridDimension(len(y_axes))
     fig, axs = plt.subplots(n, m, squeeze=False)
 
+    listOfFileNames = ""
     for tableName in dictOfTables:
         fig, axs = plotData(dictOfTables[tableName], x_axis, y_axes, partOfMultiple=True, figg=fig, axss=axs, unicolor=dictOfColors[tableName])
+        listOfFileNames += tableName.split("\\")[-1]+" | "
     
+    plt.suptitle(listOfFileNames + " overlayed as functions of " + x_axis)
     plt.show()
 
