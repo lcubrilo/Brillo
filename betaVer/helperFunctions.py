@@ -293,7 +293,7 @@ def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=Tr
     if fileName == None: 
         fileName = ""
     else:
-        fileName = fileName.split("\\")[-1] #fileName.split("/")[-1]
+        fileName = fileName.split("/")[-1] + "\n" #fileName.split("\\")[-1] 
     fig.suptitle("{} - Measurements as a function of {}".format(fileName, x_axis))
 
     if not partOfMultiple:
@@ -316,7 +316,7 @@ def plotMultiple(dictOfTables, x_axis, y_axes, dictOfColors = None):
     listOfFileNames = ""
     for tableName in dictOfTables:
         fig, axs = plotData(dictOfTables[tableName], x_axis, y_axes, partOfMultiple=True, figg=fig, axss=axs, unicolor=dictOfColors[tableName])
-        listOfFileNames += tableName.split("\\")[-1]+" | "
+        listOfFileNames += tableName.split("/")[-1] + "\n"
     
     plt.suptitle(listOfFileNames + " overlayed as functions of " + x_axis)
     plt.show()
