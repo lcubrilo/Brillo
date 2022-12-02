@@ -1,3 +1,6 @@
+"""
+This package is to be used for converting the order of magnitude of units of measurement
+"""
 # Global variables
 exponents = [2, 3, 6, 9, 12]#[1, 2, 3, 6, 9, 12]
 
@@ -44,7 +47,7 @@ def removePrefix(value):
 def addPrefix(value, prefix):
     (numericalValue, unitOfMeasurement) = value
 
-    numericalValue *= detectPrefixAmount(prefix)
+    numericalValue /= detectPrefixAmount(prefix)
 
     return (numericalValue, prefix + unitOfMeasurement)
 
@@ -82,10 +85,10 @@ def str2tuple(value):
 #print(str2tuple("345.3str"))
 
 # Test cases generation
-def generateTestUnits(sampleSize = None):
-    testPrefixes = smallerLetter + largerLetter
+def generateTestUnits(sampleSize=None, prefixes=True, units=True):
+    testPrefixes = smallerLetter + largerLetter if prefixes else [""]
 
-    testUnits = ["s", "m", "kg", "A", "K", "mol", "cd", "Hz", "rad", "sr", "N", "Pa", "J", "W", "C", "V", "Wb", "T", "F", "ohm", "S", "H", "C", "lm", "lx", "Bq", "Gy", "Sv", "kat", "L", "bar", "t", "Pa", "Mx", "raad", "eV", "Wh", "cal", "ft", "inch", "ppi", "bit"]
+    testUnits = ["s", "m", "g", "A", "K", "mol", "cd", "Hz", "rad", "sr", "N", "Pa", "J", "W", "C", "V", "Wb", "T", "F", "ohm", "S", "H", "C", "lm", "lx", "Bq", "Gy", "Sv", "kat", "L", "bar", "t", "Pa", "Mx", "rad", "eV", "Wh", "cal", "ft", "inch", "ppi", "bit"] if units else [""]
 
     allTests = [prefix+unit for prefix in testPrefixes for unit in testUnits]
 
@@ -93,14 +96,18 @@ def generateTestUnits(sampleSize = None):
         return allTests   
 
     from random import sample
-    return sample(allTests, k=20)
+    try:
+        return sample(allTests, k=sampleSize)
+    except:
+        retVal = allTests + generateTestUnits(sampleSize-len(allTests), prefixes, units)
+        return sample(retVal, k=len(retVal))
 
 def generateTestNumbers(sampleSize):
     from random import random, uniform
     return [random()*uniform(-60, 80) for i in range(sampleSize)]
 
-def generateTestValues(sampleSize):
-    units = generateTestUnits(sampleSize)
+def generateTestValues(sampleSize, prefixes=True):
+    units = generateTestUnits(sampleSize, prefixes)
     nums = generateTestNumbers(sampleSize)
 
     return list(zip(nums, units))
@@ -112,12 +119,41 @@ def testFuctions1():
 #testFuctions1()
 
 def testFunctions2():
+    print("\n(((((((((((((((((((((((((((((((((((((\nTESTING CONVERT TO BASE UNIT NO PREFIX")
     print("Original value\t  => \tConverted value\n========================================")
     values = generateTestValues(20)
     for test in values:
-        (num, unit) = test; test = (round(num, 4), unit)
-        (num, unit) = removePrefix(test); res = (round(num, 8), unit)
+        (num, unit) = test; test = (num, unit)
+        (num, unit) = removePrefix(test); res = (num, unit)
         
-        print("{} \t  => \t{}".format(tuple2str(test), tuple2str(res)))
+        print("{:e} {} \t  => \t{:e} {}".format(test[0], test[1], res[0], res[1]))
+#testFunctions2()
+
+def testFunctions3():
+    print("\n(((((((((((((((((((((((((((((((((((((\nTESTING CONVERT FROM BASE UNIT ADDING PREFIX")
+    print("        Original value\t   => \t  Converted value\n===================================================")
+    values = generateTestValues(20, False)
+    prefixes = generateTestUnits(20, units=False)
+    for test, prefix in zip(values, prefixes):
+        (num, unit) = test; test = (num, unit)
+        (num, unit) = addPrefix(test, prefix); res = (num, unit)
+        
+        print("{:e} {}  \t\t=> \t{:e} {}".format(test[0], test[1], res[0], res[1]))
+#testFunctions3()
+
+def testFunctions4():
+    print("\n(((((((((((((((((((((((((((((((((((((\nTESTING CONVERT FROM ONE PREFIX TO ANOTHER CHANGING PREFIX")
+    print("        Original value\t  => \t  Converted value\n===================================================")
+    values = generateTestValues(20)
+    prefixes = generateTestUnits(20, units=False)
+    for test, prefix in zip(values, prefixes):
+        (num, unit) = test; test = (num, unit)
+        (num, unit) = convertPrefix(test, prefix); res = (num, unit)
+        
+        print("{:e} {} \t  => \t{:e} {}".format(test[0], test[1], res[0], res[1]))
+
+
 testFunctions2()
+testFunctions3()
+testFunctions4()
 #print(generateTestValues(20))
