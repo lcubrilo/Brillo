@@ -288,6 +288,7 @@ def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=Tr
                 axs[x][y].plot(x_section, y_section, unicolor, label=msg) #connects lines
         
         axs[x][y].set_ylabel(measurement)
+        #axs[x][y].legend()
         #axs[i%4-1][i//4].plot(Time, storageOfValues, ylabel=nameOfValues+"]", xlabel=namesOfVariables[1]+"]")
         #axs[x][y].legend()
 
