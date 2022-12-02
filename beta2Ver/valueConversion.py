@@ -24,6 +24,7 @@ largerLetter = [ # ordered by magnitude (large to largest)
     ]
 largerAmount = [10**exp for exp in exponents]
 
+# Connect global variables together
 def detectPrefixAmount(unitOfMeasurement):
     for index, potentialPrefix in enumerate(largerLetter):
         if unitOfMeasurement.startswith(potentialPrefix):
@@ -35,7 +36,7 @@ def detectPrefixAmount(unitOfMeasurement):
             
     return 1
 
-
+# prefix -> no prefix -> different prefix
 def removePrefix(value):
     (numericalValue, unitOfMeasurement) = value
 
@@ -55,14 +56,6 @@ def convertPrefix(value, prefix):
     normalized = removePrefix(value)
     return addPrefix(normalized, prefix)
 
-def getValue(string, valueName, terminator = "\n", suffix = ": ", subfunction = False):
-    startIndex = string.index(valueName) +  len(valueName + suffix)
-    terminatorIndex = string.index(terminator, startIndex) if terminator != None else len(string)
-
-    numericData = string[startIndex : terminatorIndex]
-    unitOfMeasurement = getValue(valueName, "[", terminator="]", suffix="", subfunction=True) if not subfunction else ""
-
-    return (numericData, unitOfMeasurement)
 
 # tuple to str & vice versa
 def tuple2str(value):
@@ -116,7 +109,6 @@ def generateTestValues(sampleSize, prefixes=True):
 def testFuctions1():
     for test in generateTestUnits(20):
         print("For {} got {}".format(test, detectPrefixAmount(test)))
-#testFuctions1()
 
 def testFunctions2():
     print("\n(((((((((((((((((((((((((((((((((((((\nTESTING CONVERT TO BASE UNIT NO PREFIX")
@@ -127,7 +119,6 @@ def testFunctions2():
         (num, unit) = removePrefix(test); res = (num, unit)
         
         print("{:e} {} \t  => \t{:e} {}".format(test[0], test[1], res[0], res[1]))
-#testFunctions2()
 
 def testFunctions3():
     print("\n(((((((((((((((((((((((((((((((((((((\nTESTING CONVERT FROM BASE UNIT ADDING PREFIX")
@@ -139,7 +130,6 @@ def testFunctions3():
         (num, unit) = addPrefix(test, prefix); res = (num, unit)
         
         print("{:e} {}  \t\t=> \t{:e} {}".format(test[0], test[1], res[0], res[1]))
-#testFunctions3()
 
 def testFunctions4():
     print("\n(((((((((((((((((((((((((((((((((((((\nTESTING CONVERT FROM ONE PREFIX TO ANOTHER CHANGING PREFIX")
@@ -151,7 +141,6 @@ def testFunctions4():
         (num, unit) = convertPrefix(test, prefix); res = (num, unit)
         
         print("{:e} {} \t  => \t{:e} {}".format(test[0], test[1], res[0], res[1]))
-
 
 testFunctions2()
 testFunctions3()
