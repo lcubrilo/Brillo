@@ -234,6 +234,9 @@ def ruptures(x, y, n):
     model.fit(y)
     breaks = model.predict(n_bkps=n-1 if n > 0 else 0)
     return breaks"""
+newestSplit=[]
+splitMessage=[]
+checkedBoxes=[]
 
 def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=True, partOfMultiple=False, figg=None, axss=None, unicolor=None, fileName=None):
     n, m = determineGridDimension(len(y_axes))
@@ -255,6 +258,16 @@ def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=Tr
             def newSplit(array, indeces): return [array[a:b] for a,b in pairwise(indeces)]
             x_splitted = newSplit(allMeasurements[x_axis], indeces)
             y_splitted = newSplit(allMeasurements[measurement], indeces)
+
+            global newestSplit, splitMessage, checkedBoxes
+            newestSplit = list(range(len(x_splitted)))
+            splitMessage = ["Contour {} - Points ( {} -> {} ]".format(i,a,b) for i,(a,b) in enumerate(pairwise(indeces))]
+
+            if checkedBoxes != []:
+                minimum = min(allMeasurements[x_axis])
+                minimum = [minimum for i in range(len(y_splitted[0]))]
+                x_splitted = [x_splitted[i] if checked else minimum for i, checked in enumerate(checkedBoxes) ]
+
             
             #x_splitted, y_splitted = splitData(allMeasurements[x_axis], allMeasurements[measurement])
             """lenx, leny = len(x_splitted), len(y_splitted)
@@ -266,13 +279,13 @@ def plotData(allMeasurements, x_axis, y_axes, printIndexes=False, shouldSplit=Tr
         else:
             x_splitted, y_splitted = [allMeasurements[x_axis]], [allMeasurements[measurement]]
 
-        for x_section, y_section in zip(x_splitted, y_splitted):
+        for x_section, y_section, msg in zip(x_splitted, y_splitted, splitMessage):
             if unicolor == None:
                 #axs[x][y].scatter(x_section, y_section, s=5) #gives dotted appearance
-                axs[x][y].plot(x_section, y_section) #connects lines
+                axs[x][y].plot(x_section, y_section, label=msg) #connects lines
             else:
                 #axs[x][y].scatter(x_section, y_section, unicolor, s=5) #gives dotted appearance
-                axs[x][y].plot(x_section, y_section, unicolor) #connects lines
+                axs[x][y].plot(x_section, y_section, unicolor, label=msg) #connects lines
         
         axs[x][y].set_ylabel(measurement)
         #axs[i%4-1][i//4].plot(Time, storageOfValues, ylabel=nameOfValues+"]", xlabel=namesOfVariables[1]+"]")
