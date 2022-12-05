@@ -95,4 +95,20 @@ def testFunction1():
         tmp = allDataFramesFromTheFile[key]
         print("\n\n{} - size {}".format(key, tmp.shape))
         tmp.info()
-            
+
+
+import matplotlib.pyplot as plt
+# Plot
+def plotData(loadedTables, x_axis, y_axis):
+    for file in loadedTables:
+        # TODO if file checkboxed
+        fileData = loadedTables[file]
+        #print("+++++++++++++\n++++++++++++++++++\n\n\nDict {} key {}".format(loadedTables, file))
+        #print(fileData)
+        for contourName in fileData:
+            # TODO if contour checkboxed
+            contour =  fileData[contourName]
+            #print("************************\n******************\n\n\nDict {} key {}".format(fileData, contourName))
+            #print(contour)
+            plt.plot(contour[x_axis], contour[y_axis])
+        plt.show()
