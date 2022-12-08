@@ -39,7 +39,6 @@ def loadSection(section, shouldPrint=False, sectionName="Contour "):
     
     # AFAIK the only useful data we need are area and thickness. TODO check if we need others
     area = getValue(dataBeforeTable, "Area [mm2]")
-
     thickness = getValue(dataBeforeTable, "Thickness [nm]") # TODO doesn't get unit of measurement SADA GA DOBIJA, ZASTO
     #thickness = float(thickness[0]) # That perhaps answers the question above. Why do this?
 
@@ -62,7 +61,9 @@ def loadSection(section, shouldPrint=False, sectionName="Contour "):
     if shouldPrint:
         print(dataFrame)
 
-    return dataFrame
+    #dataFrame["INTERESTING CONSTANTS"] = [area, thickness]
+    interestingConstants = {"area":area, "thickness":thickness}
+    return dataFrame, interestingConstants
 
 def getValue(string, valueName, terminator = "\n", suffix = ": ", subfunction = False):
     startIndex = string.index(valueName) +  len(valueName + suffix)
@@ -82,12 +83,13 @@ def loadFile(fileName, printSummary = False):
 
     sections = sectionTheFile(lines, printSummary)
 
-    dataFrameList = {}
+    dataFrameList = {}; constantsList ={}
     for section in sections:
-        tmpDataFrame = loadSection(section)
+        tmpDataFrame, constants = loadSection(section)
         dataFrameList[currentTableName] = tmpDataFrame
+        constantsList[currentTableName] = constants
     
-    return dataFrameList
+    return dataFrameList, constantsList
 
 # Test functions
 def testFunction1():            

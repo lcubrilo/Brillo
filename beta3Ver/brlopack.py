@@ -5,6 +5,7 @@ class brlopack:
     # self.data = dict[file][table][column]
     # self.wantedFiles = []
     # self.plotFiles {file:[True, False, True]}
+    # self.constants[file][table] = [array of consatnts like area thickness etc]
 
     def __init__(self, data=None):
         if data != None:
@@ -24,9 +25,9 @@ class brlopack:
         if self.wantedFiles == None:
             raise Exception("IJS: I don't know which files to load. Either use `browseDirectories` function or the `tellFiles` function.")
         
-        self.data = {}; self.plotFiles = {}
+        self.data = {}; self.plotFiles = {}; self.constants = {}
         for file in self.wantedFiles:
-            self.data[file] = loadFile(file)
+            self.data[file], self.constants[file] = loadFile(file)
             self.plotFiles[file] = {}
             for table in self.data[file]:
                 self.plotFiles[file][table] = True
@@ -108,10 +109,13 @@ class brlopack:
                 if not self.plotFiles[file][table]: continue
                 x_data = self.data[file][table][x_axis_columnName]
                 y_data = self.data[file][table][y_axis_columnName]
+                plt.xlabel(x_axis_columnName)
+                plt.ylabel(y_axis_columnName)
                 plt.plot(x_data, y_data, label=table)
             plt.legend()
             plt.show()
     
+
 """    def readdDataToView(self, view, fileTableDict)"""
 # tests
 def testLoad():

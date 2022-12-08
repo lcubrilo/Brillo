@@ -26,21 +26,33 @@ largerAmount = [10**exp for exp in exponents]
 
 # Connect global variables together
 def detectPrefixAmount(unitOfMeasurement):
+    retVal = 1
     for index, potentialPrefix in enumerate(largerLetter):
         if unitOfMeasurement.startswith(potentialPrefix):
-            return largerAmount[index]
+            retVal = largerAmount[index]; break
 
     for index, potentialPrefix in enumerate(smallerLetter):
         if unitOfMeasurement.startswith(potentialPrefix):
-            return smallerAmount[index]
-            
-    return 1
+            retVal = smallerAmount[index]; break
+
+    return retVal
+
+def detectExponentAmount(unitOfMeasurement):
+    if type(unitOfMeasurement) != str:
+        raise Exception ("IJS: Should've been a string")
+    if len(unitOfMeasurement) < 1:
+        return 1
+        #raise Exception ("IJS: Empty string")
+
+    lastChar = unitOfMeasurement[-1]
+    return int(lastChar) if lastChar.isdigit() else 1
+    
 
 # prefix -> no prefix -> different prefix
 def removePrefix(value):
     (numericalValue, unitOfMeasurement) = value
 
-    numericalValue *= detectPrefixAmount(unitOfMeasurement)
+    numericalValue *= detectPrefixAmount(unitOfMeasurement) ** detectExponentAmount(unitOfMeasurement)
     unitOfMeasurement = unitOfMeasurement[1:]
 
     return (numericalValue, unitOfMeasurement)
@@ -48,7 +60,7 @@ def removePrefix(value):
 def addPrefix(value, prefix):
     (numericalValue, unitOfMeasurement) = value
 
-    numericalValue /= detectPrefixAmount(prefix)
+    numericalValue /= detectPrefixAmount(prefix) ** detectExponentAmount(unitOfMeasurement)
 
     return (numericalValue, prefix + unitOfMeasurement)
 
@@ -106,8 +118,9 @@ def generateTestValues(sampleSize, prefixes=True):
     return list(zip(nums, units))
 
 # Test runs 
-def testFuctions1():
+def testFunctions1():
     for test in generateTestUnits(20):
+        test+="2" #for unit squared or cubed etc
         print("For {} got {}".format(test, detectPrefixAmount(test)))
 
 def testFunctions2():
@@ -115,7 +128,7 @@ def testFunctions2():
     print("Original value\t  => \tConverted value\n========================================")
     values = generateTestValues(20)
     for test in values:
-        (num, unit) = test; test = (num, unit)
+        (num, unit) = test; test = (num, unit+"2")
         (num, unit) = removePrefix(test); res = (num, unit)
         
         print("{:e} {} \t  => \t{:e} {}".format(test[0], test[1], res[0], res[1]))
@@ -142,7 +155,9 @@ def testFunctions4():
         
         print("{:e} {} \t  => \t{:e} {}".format(test[0], test[1], res[0], res[1]))
 
-testFunctions2()
-testFunctions3()
-testFunctions4()
-#print(generateTestValues(20))
+if __name__ == "__main__":
+    testFunctions1()
+    testFunctions2()
+    testFunctions3()
+    testFunctions4()
+    #print(generateTestValues(20))
