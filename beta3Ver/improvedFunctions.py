@@ -47,12 +47,15 @@ def loadSection(section, shouldPrint=False, sectionName="Contour "):
     table = section.strip()[index:].split("\n")
     for i, line in enumerate(table):
         table[i] = table[i].strip().split("\t")
+        if i == 0: continue
+        for j, cell in enumerate(table[i]):
+            table[i][j] = float(table[i][j])
 
     # Separate column names
     columnNames = table[0]
 
     dataFrame = pd.DataFrame(
-        data = np.array(table[1:]),
+        data = np.array(table[1:]), # TODO why np array and not list
         columns=columnNames
         )
 
@@ -71,7 +74,7 @@ def getValue(string, valueName, terminator = "\n", suffix = ": ", subfunction = 
 
     unitOfMeasurement = getValue(valueName, "[", terminator="]", suffix="", subfunction=True)
 
-    return (numericData, unitOfMeasurement)
+    return (float(numericData), unitOfMeasurement)
 
 # Main function
 def loadFile(fileName, printSummary = False):
