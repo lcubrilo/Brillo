@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from improvedFunctions import loadFile
+import pandas as pd
 
 class brlopack:
     # self.data = dict[file][table][column]
@@ -95,26 +96,40 @@ class brlopack:
         for table in self.plotFiles[fileName]:
             self.plotFiles[fileName][table] = value
 
-    def shouldIPlotTables(self, fileName, table):
-        self.plotFiles[fileName][table] ^= True
+    def shouldIPlotTables(self, fileName, table, truthValue):
+        self.plotFiles[fileName][table] = truthValue
     
+    def resetPlotSettings(self):
+        for file in self.tellMeFiles():
+            self.shouldIPlotFile(file, True)
 
     def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None):
         fig, ax = plt.subplots()
 
-        files = self.tellMeFiles() if fileName == None else [fileName]
+        if fileName == None:
+            files = self.tellMeFiles()
+        elif type(fileName) == list:
+            files = fileName
+        else:
+            files = [fileName]
 
         for file in files:
             for table in self.tellMeTablesInFile(file):
-                if not self.plotFiles[file][table]: continue
+                if not self.plotFiles[file][table]:
+                    continue
                 x_data = self.data[file][table][x_axis_columnName]
                 y_data = self.data[file][table][y_axis_columnName]
                 plt.xlabel(x_axis_columnName)
                 plt.ylabel(y_axis_columnName)
                 plt.plot(x_data, y_data, label=table)
             plt.legend()
-            plt.show()
+        plt.show()
     
+    def exportToExcel(self):
+        for file in self.tellMeFiles():
+            with pd.ExcelWriter(file+'_output.xlsx') as writer:  
+                for table in self.tellMeTablesInFile(file):
+                    self.data[file][table].to_excel(writer, sheet_name=table)
 
 """    def readdDataToView(self, view, fileTableDict)"""
 # tests
