@@ -3,8 +3,8 @@
 
 import pandas as pd
 
-from PySide6.QtWidgets import QTableView, QApplication
-from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
+from PyQt5.QtWidgets import QTableView, QApplication
+from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex
 import sys
 
 class PandasModel(QAbstractTableModel):
@@ -62,25 +62,18 @@ class PandasModel(QAbstractTableModel):
 
         return None
 
-class TableViewWindow:
-    def __init__(self):
-        self.app = QApplication(sys.argv)
-
-        self.view = QTableView()
-        self.view.resize(800, 500)
-        self.view.horizontalHeader().setStretchLastSection(True)
-        self.view.setAlternatingRowColors(True)
-        self.view.setSelectionBehavior(QTableView.SelectRows)
-
-
-    def changeModel(self, df):
-        self.model = PandasModel(df)
-        self.view.setModel(self.model)
-        self.view.show()
-        self.app.exec()
-
-
 if __name__ == "__main__":
-    tvw = TableViewWindow()
-    tvw.changeModel(pd.get_dummies(pd.Series(list('abcaa'))))
+    app = QApplication(sys.argv)
+
+    view = QTableView()
+    view.resize(800, 500)
+    view.horizontalHeader().setStretchLastSection(True)
+    view.setAlternatingRowColors(True)
+    view.setSelectionBehavior(QTableView.SelectRows)
+
+
+    model = PandasModel(pd.get_dummies(pd.Series(list('abcaa'))))
+    view.setModel(model)
+    view.show()
+    app.exec()
     

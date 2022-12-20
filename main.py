@@ -2,14 +2,13 @@ import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem
 
-from PandasModelClass import TableViewWindow
+from PandasModelClass import PandasModel
 
 class MyApplicationMainWindow(QMainWindow):
     def __init__(self):
         super(MyApplicationMainWindow,self).__init__()
         uic.loadUi("mainwindow.ui", self)
         self.browseButton.clicked.connect(self.browseFiles)
-        self.tvw = TableViewWindow()
 
         try:
             from brlopack import brlopack
@@ -57,7 +56,9 @@ class MyApplicationMainWindow(QMainWindow):
         
         print("\n\n====\n",type(self.tableView))
 
-        self.tvw.changeModel(dataFrame)
+        self.tableView
+        self.model = PandasModel(dataFrame)
+        self.tableView.setModel(self.model)
         
         
 
