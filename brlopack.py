@@ -63,20 +63,27 @@ class brlopack:
         for file in self.tellMeFiles():
             self.shouldIPlotFile(file, True)
 
-    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None):
+    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None):
         fig, ax = plt.subplots()
 
         if fileName == None:
             files = self.tellMeFiles()
         elif type(fileName) == list:
             files = fileName
+        elif type(fileName) == set:
+            files = list(fileName)
         else:
             files = [fileName]
 
         for file in files:
             for table in self.tellMeTablesInFile(file):
-                if not self.plotFiles[file][table]:
-                    continue
+                if tableNames == None:
+                    if not self.plotFiles[file][table]:
+                        continue
+                else:
+                    if table not in tableNames[file]:
+                        continue
+                    
                 x_data = self.data[file][table][x_axis_columnName]
                 y_data = self.data[file][table][y_axis_columnName]
                 plt.xlabel(x_axis_columnName)
