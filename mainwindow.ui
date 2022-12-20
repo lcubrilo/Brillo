@@ -40,10 +40,13 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
-              <widget class="QListWidget" name="fileListWidget"/>
-             </item>
-             <item>
-              <widget class="QListWidget" name="tableListWidget"/>
+              <widget class="QTreeWidget" name="treeWidget">
+               <column>
+                <property name="text">
+                 <string notr="true">1</string>
+                </property>
+               </column>
+              </widget>
              </item>
             </layout>
            </item>
@@ -99,6 +102,13 @@
             <widget class="QComboBox" name="yAxisCombo"/>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="exportButton">
+           <property name="text">
+            <string>Export to Excel</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="plotButton">

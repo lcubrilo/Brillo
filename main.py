@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget
 from PyQt5.QtCore import Qt
 
 from PandasModelClass import PandasModel
@@ -13,37 +13,39 @@ class MyApplicationMainWindow(QMainWindow):
         # Slot-signal connections
         self.browseButton.clicked.connect(self.browseFiles)
         self.plotButton.clicked.connect(self.plotData)  
+        
 
-    def updateFilesToPlot(self):
+    def updateFilesToPlot(self, item, column):
+        if item.parent() != None: return
         print("UPDATE FILES TO PLOT TRIGGERED")
-        currentFile = self.fileListWidget.currentItem()
+        currentFile = item
         if currentFile == None: print("NONE ERROR"); return
         else: print("\n=====", currentFile)
 
-        if currentFile.checkState() == Qt.Checked:
-            if currentFile.text() not in self.filesToPlot:
-                self.filesToPlot.add(currentFile.text())
+        if currentFile.checkState(column) == Qt.Checked:
+            if currentFile.text(column) not in self.filesToPlot:
+                self.filesToPlot.add(currentFile.text(column))
                 print("NOW ADDED HIM TO LIST")
         
-        elif currentFile.checkState() == Qt.Unchecked:
-            if currentFile.text() in self.filesToPlot:
-                self.filesToPlot.remove(currentFile.text())
+        elif currentFile.checkState(column) == Qt.Unchecked:
+            if currentFile.text(column) in self.filesToPlot:
+                self.filesToPlot.remove(currentFile.text(column))
                 print("NOW REMOVED HIM FROM LIST")
     
-    def updateTablesToPlot(self):
-        currentFile = self.fileListWidget.currentItem()
-        if currentFile == None: return
-        currentTable = self.tableListWidget.currentItem()
+    def updateTablesToPlot(self, item, column):
+        currentTable = item
         if currentTable == None: return
+        currentFile = item.parent()
+        if currentFile == None: return
 
-        if currentTable.checkState() == Qt.Checked:
-            if currentTable.text() not in self.tablesToPlot[currentFile.text()]:
-                self.tablesToPlot[currentFile.text()].add(currentTable.text())
+        if currentTable.checkState(0) == Qt.Checked:
+            if currentTable.text(0) not in self.tablesToPlot[currentFile.text(0)]:
+                self.tablesToPlot[currentFile.text(0)].add(currentTable.text(0))
                 print("NOW ADDED HIM TO LIST")
 
-        elif currentTable.checkState() == Qt.Unchecked:
-            if currentTable.text() in self.tablesToPlot[currentFile.text()]:
-                self.tablesToPlot[currentFile.text()].remove(currentTable.text())
+        elif currentTable.checkState(0) == Qt.Unchecked:
+            if currentTable.text(0) in self.tablesToPlot[currentFile.text(0)]:
+                self.tablesToPlot[currentFile.text(0)].remove(currentTable.text(0))
                 print("NOW REMOVED HIM FROM LIST")
 
     def __init__(self):
@@ -58,27 +60,38 @@ class MyApplicationMainWindow(QMainWindow):
             print("ERROR: Importing the package was NOT successful.")
         
         self.paket = brlopack()
+        self.exportButton.clicked.connect(self.paket.exportToExcel)
         
         self.filesToPlot = set()
         self.tablesToPlot = {}
 
     def browseFiles(self):
         self.plotButton.enabled = False
-        self.fileListWidget.clear()
+        #self.treeWidget.clear()
         fileNames = QFileDialog.getOpenFileNames(self, "Open file", "data")[0]
-        for i, file in enumerate(fileNames):
-            #fileNames[i] = fileNames[i].split("/")[-1]
-            #file = fileNames[i]
-            tmp = QListWidgetItem(file)
-            tmp.setCheckState(Qt.Checked)
-            self.fileListWidget.addItem(tmp)
-
-        self.fileListWidget.itemClicked.connect(self.showTables)
-        self.fileListWidget.itemChanged.connect(self.updateFilesToPlot)
-        
 
         self.paket.tellFiles(list(fileNames))
         self.paket.loadFiles()
+
+        items = []
+        for i, file in enumerate(self.paket.tellMeFiles()):
+            tmp = QTreeWidgetItem(self.treeWidget, [file])
+            items.append(tmp)
+            items[i].setCheckState(0, Qt.Checked)
+        
+        #self.treeWidget.insertTopLevelItems(0, items)
+            
+            for table in self.paket.tellMeTablesInFile(file):
+                    tmpChild = QTreeWidgetItem(tmp, [table])#(tmp)
+                    #tmpChild.setText(table)
+                    tmpChild.setCheckState(0, Qt.Checked)
+                    #tmp.addChild(tmpChild)
+            
+
+        self.treeWidget.itemClicked.connect(self.showData)
+        self.treeWidget.itemChanged.connect(self.updateFilesToPlot)
+        self.treeWidget.itemChanged.connect(self.updateTablesToPlot)
+        
 
         # Put all to be plotted
         for file in self.paket.tellMeFiles():
@@ -87,14 +100,13 @@ class MyApplicationMainWindow(QMainWindow):
             for table in self.paket.tellMeTablesInFile(file):
                 self.tablesToPlot[file].add(table)
     
+        """def showTables(self, item, column):
+        #self.tableListWidget.clear()
 
-    def showTables(self):
-        self.tableListWidget.clear()
-
-        currentItem = self.fileListWidget.currentItem()
+        currentItem = item
         if currentItem == None: return
 
-        fileName = currentItem.text()
+        fileName = currentItem.text(column)
         for table in self.paket.tellMeTablesInFile(fileName):
             tmp = QListWidgetItem(table)
             if table in self.tablesToPlot[fileName]:
@@ -104,31 +116,24 @@ class MyApplicationMainWindow(QMainWindow):
             self.tableListWidget.addItem(tmp)
 
         self.tableListWidget.itemClicked.connect(self.showData)
-        self.tableListWidget.itemChanged.connect(self.updateTablesToPlot)
+        self.tableListWidget.itemChanged.connect(self.updateTablesToPlot)"""
+        
         self.plotButton.enabled = True
-    
-    def showData(self):
+
+    def showData(self, item, column):
         # TODO clear prevous??
-        currentItem = self.fileListWidget.currentItem()
-        if currentItem == None: return
-        fileName = currentItem.text()
+        #currentItem = self.treeWidget.currentItem()
+        if item.parent() == None: return
 
-        currentItem = self.tableListWidget.currentItem()
-        if currentItem == None: return
-        tableName = currentItem.text()
-        
-        dataFrame = self.paket.data[fileName][tableName]
-        
-        
-        #print("\n\n====\n",type(self.tableView))
+        dataFrame = self.paket.data[item.parent().text(0)][item.text(0)]
 
-        self.tableView
         self.model = PandasModel(dataFrame)
         self.tableView.setModel(self.model)
 
-        for val in self.model._dataframe.columns.values:
-            self.xAxisCombo.addItem(val)
-            self.yAxisCombo.addItem(val)
+        if self.xAxisCombo.count() == 0:
+            for val in self.model._dataframe.columns.values:
+                self.xAxisCombo.addItem(val)
+                self.yAxisCombo.addItem(val)
             
     
     def plotData(self):
