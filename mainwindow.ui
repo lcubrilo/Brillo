@@ -74,7 +74,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <layout class="QVBoxLayout" name="tablePlottingLayout">
          <item>
           <widget class="QTableView" name="tableView">
            <property name="minimumSize">
@@ -84,6 +84,36 @@
             </size>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="axesLayout">
+           <item>
+            <widget class="QComboBox" name="xAxisCombo">
+             <property name="editable">
+              <bool>false</bool>
+             </property>
+             <property name="currentText">
+              <string/>
+             </property>
+             <property name="placeholderText">
+              <string>xAxis name</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="yAxisCombo">
+             <property name="editable">
+              <bool>false</bool>
+             </property>
+             <property name="currentText">
+              <string/>
+             </property>
+             <property name="placeholderText">
+              <string>yAxis name</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QPushButton" name="plotButton">

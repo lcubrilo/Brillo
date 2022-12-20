@@ -5,10 +5,17 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem
 from PandasModelClass import PandasModel
 
 class MyApplicationMainWindow(QMainWindow):
+    def setupUI(self):
+        # Load UI from .ui file
+        uic.loadUi("mainwindow.ui", self)
+
+        # Slot-signal connections
+        self.browseButton.clicked.connect(self.browseFiles)
+        self.plotButton.clicked.connect(self.plotData)  
+
     def __init__(self):
         super(MyApplicationMainWindow,self).__init__()
-        uic.loadUi("mainwindow.ui", self)
-        self.browseButton.clicked.connect(self.browseFiles)
+        self.setupUI()
 
         try:
             from brlopack import brlopack
@@ -20,6 +27,7 @@ class MyApplicationMainWindow(QMainWindow):
         self.paket = brlopack()
 
     def browseFiles(self):
+        self.plotButton.enabled = False
         self.fileListWidget.clear()
         fileNames = QFileDialog.getOpenFileNames(self, "Open file", r"C:\Users\Uporabnik\Documents\Git projekti\ajzakt\data")[0]
         for file in fileNames:
@@ -40,6 +48,7 @@ class MyApplicationMainWindow(QMainWindow):
         for table in self.paket.tellMeTablesInFile(fileName):
             self.tableListWidget.addItem(QListWidgetItem(table))
         self.tableListWidget.currentItemChanged.connect(self.showData)
+        self.plotButton.enabled = True
     
     def showData(self):
         # TODO clear prevous??
@@ -59,7 +68,20 @@ class MyApplicationMainWindow(QMainWindow):
         self.tableView
         self.model = PandasModel(dataFrame)
         self.tableView.setModel(self.model)
+
+        for val in self.model._dataframe.columns.values:
+            self.xAxisCombo.addItem(val)
+            self.yAxisCombo.addItem(val)
+            
+    
+    def plotData(self):
+        x_axis = self.xAxisCombo.currentText()
+        y_axis = self.yAxisCombo.currentText()
         
+        if x_axis == "" or y_axis == "":
+            return
+            
+        self.paket.plotData(x_axis, y_axis)
         
 
 

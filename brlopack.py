@@ -51,47 +51,7 @@ class brlopack:
             return [key for key in self.data[file][table]]
         except:
             raise Exception("IJS: No table named `{}` found in file `{}`. Check for typos.".format(table, file))
-    """ 
-    # Trim data
-    def trimFiles(self, files):
-        try:
-            retVal = []
-            for file in files:
-                retVal.append(self.data[file])
-            self.loadedTable = retVal
-        except:
-            raise Exception("IJS: Check spelling of files `{}`".format(files))
 
-    def trimTablesInFile(self, file, tables):
-        try:
-            self.data[file] = [self.data[file][table] for table in tables]
-        except:
-            raise Exception("IJS: Check spelling of tables `{}` within the file `{}`".format(tables, file))
-    
-    def trimColumnsInTable(self, file, table, columns):
-        try:
-            self.data[file][table] = [self.data[file][table][column] for column in columns]
-        except:
-            raise Exception("IJS: Check spelling of columns `{}` within the table `{}` within the file `{}`".format(columns, table, file))
-    
-    # Looks like we didn't need trimming
-    # questionable if we even need this
-    def createView(self, fileTableDict, columns):
-        # In order to preserve original data, we shall do the trimmings on a copy
-        tmp = brlopack()
-        tmp.tellFiles([file for file in fileTableDict])
-        tmp.data = {}
-
-        for file in fileTableDict:
-            tmp.data[file] = {}
-            tables = fileTableDict[file]
-            if tables == None: tables = [table for table in self.data[file]]
-
-            for table in tables:
-                tmp.data[file][table] = self.data[file][table][columns]
-
-        return tmp
-    """
     def shouldIPlotFile(self, fileName, value):
         for table in self.plotFiles[fileName]:
             self.plotFiles[fileName][table] = value

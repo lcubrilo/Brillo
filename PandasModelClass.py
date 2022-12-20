@@ -76,4 +76,3 @@ if __name__ == "__main__":
     view.setModel(model)
     view.show()
     app.exec()
-    
