@@ -147,8 +147,6 @@ class MyApplicationMainWindow(QMainWindow):
         self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot)
         
 
-
-
 app = QtWidgets.QApplication(sys.argv)
 window = MyApplicationMainWindow()
 window.show()
