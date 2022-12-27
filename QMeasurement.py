@@ -4,7 +4,7 @@ import valueConversion
 class QMeasurement(QWidget):
     def __init__(self, measurementName, measurement):
         super().__init__()
-        self.setStyleSheet("font-size: 20pt;")
+        #self.setStyleSheet("font-size: 16pt;")
         self.val = measurement
 
         # Create the label

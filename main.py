@@ -2,7 +2,7 @@ import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit
 from PyQt5.QtCore import Qt, QPoint
-import QMeasurement
+from QMeasurement import QMeasurement
 
 from PandasModelClass import PandasModel
 
@@ -194,14 +194,18 @@ class MyApplicationMainWindow(QMainWindow):
         # Load Constants
         widget = QWidget()
         layout = QHBoxLayout(widget)
-        for const in self.paket.constants[currFile][currTable]:
-            layout.addWidget(QLabel(const))
+        for constName in self.paket.constants[currFile][currTable]:
+            value = self.paket.constants[currFile][currTable][constName]
+            tmpWidget = QMeasurement(constName, value)
+            tmpWidget.line_edit.setEnabled(False)
+            layout.addWidget(tmpWidget)
 
-            value = self.paket.constants[currFile][currTable][const]
+            """layout.addWidget(QLabel(constName))
+            
             tmp = QLineEdit()
             tmp.setText(str(value))
             tmp.setEnabled(False)
-            layout.addWidget(tmp)
+            layout.addWidget(tmp)"""
 
         self.constantScrollArea.setWidget(widget)
             
