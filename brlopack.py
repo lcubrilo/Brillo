@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from improvedFunctions import loadFile
 import pandas as pd
-
+import valueConversion
 class brlopack:
     # self.data = dict[file][table][column]
     # self.wantedFiles = []
@@ -103,7 +103,11 @@ class brlopack:
             for table in self.tellMeTablesInFile(file):
                 (constantVal, constantUnit) = self.constants[file][table][constName]
                 self.data[file][table][newColumnName] = [el/constantVal for el in self.data[file][table][columnName]]
-
+    
+    def changeUnitOfConstant(self, constantName, unitPrefix):
+        for file in self.tellMeFiles():
+            for table in self.tellMeTablesInFile(file):
+                self.constants[file][table][constantName] = valueConversion.convertPrefix(self.constants[file][table][constantName], unitPrefix)
 # tests
 def testLoad():
     paket = brlopack()

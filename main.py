@@ -146,7 +146,6 @@ class MyApplicationMainWindow(QMainWindow):
         self.browseFiles(dontBrowse=True)
 
     def browseFiles(self, dontBrowse=False):
-        self.plotButton.enabled = False
         #self.treeWidget.clear()
         if not dontBrowse:
             self.fileNames = QFileDialog.getOpenFileNames(self, "Open file", "data")[0]
@@ -199,7 +198,7 @@ class MyApplicationMainWindow(QMainWindow):
             tmpWidget = QMeasurement(constName, value)
             tmpWidget.line_edit.setEnabled(False)
             layout.addWidget(tmpWidget)
-
+            tmpWidget.unitChanged.connect(self.paket.changeUnitOfConstant)
             """layout.addWidget(QLabel(constName))
             
             tmp = QLineEdit()
@@ -213,7 +212,6 @@ class MyApplicationMainWindow(QMainWindow):
         x_axis = self.xAxisCombo.currentText()
         y_axis = self.yAxisCombo.currentText()
     
-        
         if x_axis == "" or y_axis == "":
             return
             

@@ -2,6 +2,9 @@
 This package is to be used for converting the order of magnitude of units of measurement
 """
 # Global variables
+# TODO check for number of real digits, save it and use it to round off any precision errors
+# numDig = len(str(num).replace("0", " " ).strip())
+# Alternatively check for repeating 99999s and x00000y, where y is just one digit
 exponents = [2, 3, 6, 9, 12]#[1, 2, 3, 6, 9, 12]
 
 smallerLetter = [ # ordered by magnitude (small to smallest)
@@ -52,6 +55,8 @@ def detectExponentAmount(unitOfMeasurement):
 def removePrefix(value):
     (numericalValue, unitOfMeasurement) = value
     if len(unitOfMeasurement) == 1:
+        return value
+    if len(unitOfMeasurement) == 2 and unitOfMeasurement[-1].isdigit():
         return value
 
     numericalValue *= detectPrefixAmount(unitOfMeasurement) ** detectExponentAmount(unitOfMeasurement)

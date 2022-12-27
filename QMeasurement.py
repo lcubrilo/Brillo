@@ -1,7 +1,9 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QComboBox, QHBoxLayout
+from PyQt5.QtCore import pyqtSignal
 import valueConversion
 
 class QMeasurement(QWidget):
+    unitChanged = pyqtSignal(str, str)
     def __init__(self, measurementName, measurement):
         super().__init__()
         #self.setStyleSheet("font-size: 16pt;")
@@ -40,14 +42,17 @@ class QMeasurement(QWidget):
         
         index = self.combo_box.findText(unit)
         self.combo_box.setCurrentIndex(index)
+
         self.combo_box.currentIndexChanged.connect(self.changeUnit)
     
     def changeUnit(self, index):
         newUnit = self.combo_box.currentText()
+        if newUnit[-1].isdigit(): newUnit = newUnit[:-1]
         newPrefix = newUnit[0] if len(newUnit) > 1 else ""
         
         newVal = valueConversion.convertPrefix(self.val, newPrefix)
         self.line_edit.setText(str(newVal[0]))
+        self.unitChanged.emit(self.label.text(), newPrefix)
         
 
 if __name__ == "__main__":
