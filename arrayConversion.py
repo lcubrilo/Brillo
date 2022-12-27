@@ -19,7 +19,7 @@ def divideByValue(array, unit, value):
         res.append(el/num)
     return res, unit
 
-def adapter_ConvertPrefix(paket, oldCol, newCol):
+def adapter_ConvertPrefix(paket, oldCol, newCol, otherArgs=None):
     for file in paket.tellMeFiles():
         for table in paket.tellMeTablesInFile(file):
             temporary = adapterConvertPrefix(paket.data[file][table][oldCol], oldCol, newCol)

@@ -402,7 +402,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="editButton">
               <property name="text">
                <string>Execute edit</string>
               </property>

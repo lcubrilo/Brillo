@@ -98,7 +98,12 @@ class brlopack:
                 for table in self.tellMeTablesInFile(file):
                     self.data[file][table].to_excel(writer, sheet_name=table)
 
-"""    def readdDataToView(self, view, fileTableDict)"""
+    def divide(self, columnName, newColumnName, constName):
+        for file in self.tellMeFiles():
+            for table in self.tellMeTablesInFile(file):
+                (constantVal, constantUnit) = self.constants[file][table][constName]
+                self.data[file][table][newColumnName] = [el/constantVal for el in self.data[file][table][columnName]]
+
 # tests
 def testLoad():
     paket = brlopack()

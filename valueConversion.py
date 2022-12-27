@@ -51,6 +51,8 @@ def detectExponentAmount(unitOfMeasurement):
 # prefix -> no prefix -> different prefix
 def removePrefix(value):
     (numericalValue, unitOfMeasurement) = value
+    if len(unitOfMeasurement) == 1:
+        return value
 
     numericalValue *= detectPrefixAmount(unitOfMeasurement) ** detectExponentAmount(unitOfMeasurement)
     unitOfMeasurement = unitOfMeasurement[1:]

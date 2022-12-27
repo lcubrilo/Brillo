@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit
 from PyQt5.QtCore import Qt, QPoint
+import QMeasurement
 
 from PandasModelClass import PandasModel
 
@@ -15,6 +16,9 @@ class MyApplicationMainWindow(QMainWindow):
         self.plotButton.clicked.connect(self.plotData)  
         self.deleteButton.clicked.connect(self.deleteColumns)
         self.reloadButton.clicked.connect(self.reloadFiles)
+        self.editButton.clicked.connect(self.editColumn)
+
+        self.operationCombo.currentIndexChanged.connect(self.checkIfConstantNeeded)
 
     def setupUI2(self):
         # treeWidget connections
@@ -58,7 +62,29 @@ class MyApplicationMainWindow(QMainWindow):
         operations = ["Divide by constant", "Convert unit"]
         for op in operations:
             self.operationCombo.addItem(op)
-        
+    
+    def checkIfConstantNeeded(self, index):
+        item = self.operationCombo.itemText(index)
+        if item in ["Divide by constant"]:
+            self.constCombo.setEnabled(True)
+        else:
+            self.constCombo.setEnabled(False)
+
+    def editColumn(self):
+        from brlopack import brlopack
+        import arrayConversion
+        operations = {
+            "Divide by constant": brlopack.divide,
+            "Convert unit": arrayConversion.adapter_ConvertPrefix
+        }
+
+        inputColumn = self.inputColCombo.currentText()
+        operation = self.operationCombo.currentText()
+        constant = self.constCombo.currentText()
+        outputColumn = self.outputColLineEdit.text()
+
+        operations[operation](self.paket, inputColumn, outputColumn, constant)
+
 
     def updateFilesToPlot(self, item, column):
         if item.parent() != None: return
@@ -174,6 +200,7 @@ class MyApplicationMainWindow(QMainWindow):
             value = self.paket.constants[currFile][currTable][const]
             tmp = QLineEdit()
             tmp.setText(str(value))
+            tmp.setEnabled(False)
             layout.addWidget(tmp)
 
         self.constantScrollArea.setWidget(widget)
@@ -200,9 +227,8 @@ class MyApplicationMainWindow(QMainWindow):
 
                     index = self.xAxisCombo.findText(columnName)
                     self.xAxisCombo.removeItem(index)
-                    
-                    index = self.yAxisCombo.findText(columnName)
                     self.yAxisCombo.removeItem(index)
+                    self.inputColCombo.removeItem(index)
 
                     checkBox.setEnabled(False)
         
