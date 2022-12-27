@@ -1,20 +1,65 @@
 import sys
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit
+from PyQt5.QtCore import Qt, QPoint
 
 from PandasModelClass import PandasModel
 
 class MyApplicationMainWindow(QMainWindow):
     def setupUI(self):
         # Load UI from .ui file
-        uic.loadUi("mainwindow.ui", self)
+        uic.loadUi("mainwindow_tabs.ui", self)
 
         # Slot-signal connections
         self.browseButton.clicked.connect(self.browseFiles)
         self.plotButton.clicked.connect(self.plotData)  
         self.deleteButton.clicked.connect(self.deleteColumns)
+        self.reloadButton.clicked.connect(self.reloadFiles)
+
+    def setupUI2(self):
+        # treeWidget connections
+        self.treeWidget.itemClicked.connect(self.showData)
+        self.treeWidget.itemChanged.connect(self.updateFilesToPlot)
+        self.treeWidget.itemChanged.connect(self.updateTablesToPlot)
+
+        # We have to run showData() at least once so that self.model isn't None
+        point = QPoint(10, 10)
+        item = self.treeWidget.itemAt(point).child(0)
+        self.showData(item, 0)
+
+        self.reloadButton.setEnabled(True)
+        # enable right part of the screen
+        self.tabWidget.setEnabled(True)
+
+        # assuming all tables have the same columns
+
+        # populate comboboxes with columns
+        for val in self.model._dataframe.columns.values:
+            self.xAxisCombo.addItem(val)
+            self.yAxisCombo.addItem(val)
+            self.inputColCombo.addItem(val)
+
+        # display columns that can be deleted
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        for val in self.model._dataframe.columns.values:
+            tmpCheckBox = QCheckBox(val, self.columnsScrollArea)
+            tmpCheckBox.setCheckState(Qt.Checked)
+            layout.addWidget(tmpCheckBox)
+        self.columnsScrollArea.setWidget(widget)
+
+        # display constants
+        firstFile = self.paket.tellMeFiles()[0]
+        firstTable = self.paket.tellMeTablesInFile(firstFile)[0]
+        for constName in self.paket.constants[firstFile][firstTable]:
+            self.constCombo.addItem(constName)
         
+        # display operations
+        operations = ["Divide by constant", "Convert unit"]
+        for op in operations:
+            self.operationCombo.addItem(op)
+        
+
     def updateFilesToPlot(self, item, column):
         if item.parent() != None: return
         print("UPDATE FILES TO PLOT TRIGGERED")
@@ -64,34 +109,40 @@ class MyApplicationMainWindow(QMainWindow):
         
         self.filesToPlot = set()
         self.tablesToPlot = {}
+        self.fileNames = None
 
-    def browseFiles(self):
+    def reloadFiles(self):
+        msg = QMessageBox()
+
+        msg.setWindowTitle("Notification")
+        msg.setText("You have reloaded the files. Deleted columns are now back and any newly added ones are gone.")
+        x = msg.exec_()
+        self.browseFiles(dontBrowse=True)
+
+    def browseFiles(self, dontBrowse=False):
         self.plotButton.enabled = False
         #self.treeWidget.clear()
-        fileNames = QFileDialog.getOpenFileNames(self, "Open file", "data")[0]
+        if not dontBrowse:
+            self.fileNames = QFileDialog.getOpenFileNames(self, "Open file", "data")[0]
+        elif self.fileNames == None:
+            raise Exception("Which files am I supposed to load?")
+        else:
+            self.treeWidget.clear()
 
-        self.paket.tellFiles(list(fileNames))
+        self.paket.tellFiles(list(self.fileNames))
         self.paket.loadFiles()
 
-        items = []
+        # Populating the tree widget with files and tables
         for i, file in enumerate(self.paket.tellMeFiles()):
             tmp = QTreeWidgetItem(self.treeWidget, [file])
-            items.append(tmp)
-            items[i].setCheckState(0, Qt.Checked)
-        
-        #self.treeWidget.insertTopLevelItems(0, items)
+            tmp.setCheckState(0, Qt.Checked)
             
             for table in self.paket.tellMeTablesInFile(file):
                 tmpChild = QTreeWidgetItem(tmp, [table])#(tmp)
-                #tmpChild.setText(table)
                 tmpChild.setCheckState(0, Qt.Checked)
-                #tmp.addChild(tmpChild)
             
-
-        self.treeWidget.itemClicked.connect(self.showData)
-        self.treeWidget.itemChanged.connect(self.updateFilesToPlot)
-        self.treeWidget.itemChanged.connect(self.updateTablesToPlot)
-        
+        # TODO Put in setupui()??? seems to crash after loading
+         
 
         # Put all to be plotted
         for file in self.paket.tellMeFiles():
@@ -100,34 +151,32 @@ class MyApplicationMainWindow(QMainWindow):
             for table in self.paket.tellMeTablesInFile(file):
                 self.tablesToPlot[file].add(table)
         
-        self.plotButton.enabled = True
-        self.exportButton.enabled = True
+        self.setupUI2()
         
     def showData(self, item, column):
         # TODO clear prevous??
         #currentItem = self.treeWidget.currentItem()
         if item.parent() == None: return
 
-        self.currentFileSelected = item.parent().text(0)
-        self.currentTableSelected = item.text(0)
-        dataFrame = self.paket.data[self.currentFileSelected][self.currentTableSelected]
+        currFile = item.parent().text(0)
+        currTable = item.text(0)
+        dataFrame = self.paket.data[currFile][currTable]
 
         self.model = PandasModel(dataFrame)
         self.tableView.setModel(self.model)
 
-        if self.xAxisCombo.count() == 0:
-            for val in self.model._dataframe.columns.values:
-                self.xAxisCombo.addItem(val)
-                self.yAxisCombo.addItem(val)
+        # Load Constants
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        for const in self.paket.constants[currFile][currTable]:
+            layout.addWidget(QLabel(const))
 
-        if len(self.scrollArea.findChildren(QWidget)) == 6:
-            widget = QWidget()
-            layout = QHBoxLayout(widget)
-            for val in self.model._dataframe.columns.values:
-                tmpCheckBox = QCheckBox(val, self.scrollArea)
-                tmpCheckBox.setCheckState(Qt.Checked)
-                layout.addWidget(tmpCheckBox)
-            self.scrollArea.setWidget(widget)
+            value = self.paket.constants[currFile][currTable][const]
+            tmp = QLineEdit()
+            tmp.setText(str(value))
+            layout.addWidget(tmp)
+
+        self.constantScrollArea.setWidget(widget)
             
     def plotData(self):
         x_axis = self.xAxisCombo.currentText()
@@ -143,7 +192,7 @@ class MyApplicationMainWindow(QMainWindow):
         self.tableView.setModel(None)
         columnsToDelete = []
 
-        for checkBox in self.scrollArea.findChildren(QCheckBox):
+        for checkBox in self.columnsScrollArea.findChildren(QCheckBox):
             if checkBox.checkState() == Qt.Unchecked:
                 if checkBox.isEnabled():
                     columnName = checkBox.text()
@@ -166,7 +215,7 @@ class MyApplicationMainWindow(QMainWindow):
         msg = QMessageBox()
 
         msg.setWindowTitle("Notification")
-        msg.setText("You have just deleted the columns that were unselected. To get them back, reload the files.")
+        msg.setText("You have just deleted the columns that were unselected. To get them back, reload the files. (That also means any new ones that were unsaved are going to be lost)")
         x = msg.exec_()  
 
 app = QtWidgets.QApplication(sys.argv)
