@@ -6,6 +6,8 @@ class addConstantDialog(QDialog):
     constantLoaded = pyqtSignal(str, str, str)
     def __init__(self, file):
         super().__init__()
+        self.setStyleSheet("font-size: 16pt;")
+
         self.constName = QLineEdit()
         self.constName.setPlaceholderText("Constant name")
 
