@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>801</width>
-    <height>530</height>
+    <width>903</width>
+    <height>675</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -91,7 +91,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="showDataTab">
         <attribute name="title">
@@ -393,7 +393,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>fdsdfsdf</string>
+                   <string>Time [ms]</string>
                   </property>
                  </widget>
                 </item>
@@ -410,6 +410,19 @@
             </item>
            </layout>
           </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -466,6 +479,69 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="codeTab">
+        <attribute name="title">
+         <string>Macros</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_9">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QPushButton" name="loadCodeButton">
+             <property name="text">
+              <string>Load from file</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="saveCodeButton">
+             <property name="text">
+              <string>Save to file</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPlainTextEdit" name="codePlainEdit">
+           <property name="plainText">
+            <string># Example code
+convert (&quot;Time [s]&quot;, &quot;Time [ms]&quot;)
+convert (&quot;I2 [A]&quot;, &quot;I2 [mA]&quot;)
+convert (&quot;I3 [A]&quot;, &quot;I3 [mA]&quot;)
+delete (&quot;Time [s]&quot;, &quot;I2 [A]&quot;, &quot;I3 [A]&quot;)
+###
+delete (&quot;I1 [A]&quot;, &quot;P1 [uC/cm2]&quot;, &quot;D1 [nm]&quot;, &quot;CH3 [V]&quot;)
+
+convert (&quot;V+ [V]&quot;, &quot;V+ [kV]&quot;)
+convert (&quot;V- [V]&quot;, &quot;V- [kV]&quot;)
+
+convert (&quot;thickness&quot;, &quot;cm&quot;)
+
+divide (&quot;V+ [kV]&quot;, &quot;thickness&quot;, &quot;E+ [kV/cm]&quot;)
+divide (&quot;V- [kV]&quot;, &quot;thickness&quot;, &quot;E- [kV/cm]&quot;)
+
+delete (&quot;V+ [V]&quot;, &quot;V+ [kV]&quot;, &quot;V- [V]&quot;, &quot;V- [kV]&quot;)
+###
+convert (&quot;thickness&quot;, &quot;nm&quot;)
+divide (&quot;D2 [nm]&quot;, &quot;thickness&quot;, &quot;Strain2 []&quot;)
+divide (&quot;D3 [nm]&quot;, &quot;thickness&quot;, &quot;Strain3 []&quot;)
+
+delete (&quot;D2 [nm]&quot;, &quot;D3 [nm]&quot;)
+
+</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="runCodeButton">
+           <property name="text">
+            <string>Run macros</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -476,7 +552,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>801</width>
+     <width>903</width>
      <height>23</height>
     </rect>
    </property>

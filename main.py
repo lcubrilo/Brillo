@@ -4,19 +4,24 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidg
 from PyQt5.QtCore import Qt, QPoint
 from QMeasurement import QMeasurement
 
+# Custom packages
 from PandasModelClass import PandasModel
-
+from brlopack import brlopack
+import arrayConversion
 class MyApplicationMainWindow(QMainWindow):
     def setupUI(self):
         # Load UI from .ui file
         uic.loadUi("mainwindow_tabs.ui", self)
-
+        self.plotButton.setEnabled(True) # I really dont know why this is necessary... but it is.
+        self.exportButton.setEnabled(True) # I really dont know why this is necessary... but it is.
+        
         # Slot-signal connections
         self.browseButton.clicked.connect(self.browseFiles)
         self.plotButton.clicked.connect(self.plotData)  
         self.deleteButton.clicked.connect(self.deleteColumns)
         self.reloadButton.clicked.connect(self.reloadFiles)
         self.editButton.clicked.connect(self.editColumn)
+        self.runCodeButton.clicked.connect(self.parseCode)
 
         self.operationCombo.currentIndexChanged.connect(self.checkIfConstantNeeded)
 
@@ -37,20 +42,7 @@ class MyApplicationMainWindow(QMainWindow):
 
         # assuming all tables have the same columns
 
-        # populate comboboxes with columns
-        for val in self.model._dataframe.columns.values:
-            self.xAxisCombo.addItem(val)
-            self.yAxisCombo.addItem(val)
-            self.inputColCombo.addItem(val)
-
-        # display columns that can be deleted
-        widget = QWidget()
-        layout = QHBoxLayout(widget)
-        for val in self.model._dataframe.columns.values:
-            tmpCheckBox = QCheckBox(val, self.columnsScrollArea)
-            tmpCheckBox.setCheckState(Qt.Checked)
-            layout.addWidget(tmpCheckBox)
-        self.columnsScrollArea.setWidget(widget)
+        self.updateColumns()
 
         # display constants
         firstFile = self.paket.tellMeFiles()[0]
@@ -71,20 +63,42 @@ class MyApplicationMainWindow(QMainWindow):
             self.constCombo.setEnabled(False)
 
     def editColumn(self):
-        from brlopack import brlopack
-        import arrayConversion
         operations = {
             "Divide by constant": brlopack.divide,
             "Convert unit": arrayConversion.adapter_ConvertPrefix
         }
 
+        # Prepare arguments
         inputColumn = self.inputColCombo.currentText()
         operation = self.operationCombo.currentText()
         constant = self.constCombo.currentText()
         outputColumn = self.outputColLineEdit.text()
 
+        # Run operation
         operations[operation](self.paket, inputColumn, outputColumn, constant)
 
+        self.updateColumns()
+
+    def updateColumns(self):
+        # populate comboboxes with columns
+        self.xAxisCombo.clear()
+        self.yAxisCombo.clear()
+        self.inputColCombo.clear()
+        
+        for val in self.model._dataframe.columns.values:
+            self.xAxisCombo.addItem(val)
+            self.yAxisCombo.addItem(val)
+            self.inputColCombo.addItem(val)
+
+        # display columns that can be deleted
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        for val in self.model._dataframe.columns.values:
+            tmpCheckBox = QCheckBox(val, self.columnsScrollArea)
+            tmpCheckBox.setCheckState(Qt.Checked)
+            layout.addWidget(tmpCheckBox)
+        self.columnsScrollArea.setWidget(widget)
+        self.scrollAreaLayout = layout
 
     def updateFilesToPlot(self, item, column):
         if item.parent() != None: return
@@ -217,22 +231,25 @@ class MyApplicationMainWindow(QMainWindow):
             
         self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot)
     
-    def deleteColumns(self):
+    def deleteColumns(self, columnsArg = None):
         self.tableView.setModel(None)
-        columnsToDelete = []
+        if not columnsArg:
+            columnsToDelete = []  
 
-        for checkBox in self.columnsScrollArea.findChildren(QCheckBox):
-            if checkBox.checkState() == Qt.Unchecked:
-                if checkBox.isEnabled():
-                    columnName = checkBox.text()
-                    columnsToDelete.append(columnName)
+            for checkBox in self.columnsScrollArea.findChildren(QCheckBox):
+                if checkBox.checkState() == Qt.Unchecked:
+                    if checkBox.isEnabled():
+                        columnName = checkBox.text()
+                        columnsToDelete.append(columnName)
+                        checkBox.setEnabled(False)
+        else:
+            columnsToDelete =  columnsArg
 
-                    index = self.xAxisCombo.findText(columnName)
-                    self.xAxisCombo.removeItem(index)
-                    self.yAxisCombo.removeItem(index)
-                    self.inputColCombo.removeItem(index)
-
-                    checkBox.setEnabled(False)
+        for columnName in columnsToDelete:
+            index = self.xAxisCombo.findText(columnName)
+            self.xAxisCombo.removeItem(index)
+            self.yAxisCombo.removeItem(index)
+            self.inputColCombo.removeItem(index)
         
         for file in self.paket.tellMeFiles():
             for table in self.paket.tellMeTablesInFile(file):
@@ -246,6 +263,46 @@ class MyApplicationMainWindow(QMainWindow):
         msg.setText("You have just deleted the columns that were unselected. To get them back, reload the files. (That also means any new ones that were unsaved are going to be lost)")
         x = msg.exec_()  
 
+    def parseCode(self):
+        #with open("macroExample.txt", "r") as f:
+        for line in self.codePlainEdit.toPlainText().split("\n"):
+            if len(line) <= 1: continue
+            if line[0] == "#" or line == "\n": continue
+
+            start = line.find("(")
+            end = line.rfind(")")
+
+            args = line[start+1:end]
+            args = args.split('", "')
+            args[0] = args[0][1:]
+            args[-1] = args[-1][:-1]
+            
+
+            if line.startswith("delete"):
+                self.deleteColumns(args)
+
+            elif line.startswith("convert"):
+                input = args[0]
+                output = args[1]
+
+                if input.find("[") == -1: #constant convert:
+                    constant = input
+                    newPrefix = output[0]
+                    self.paket.changeUnitOfConstant(constant, newPrefix)
+                    #print("Constant convert", constant, newPrefix)
+                else: # column convert
+                    arrayConversion.adapter_ConvertPrefix(self.paket, input, output)
+            
+            elif line.startswith("divide"):
+                input = args[0]
+                constant = args[1]
+                output = args[2]
+                self.paket.divide(input, output, constant)
+            else:
+                print("bruh")
+        
+        self.updateColumns()
+            
 app = QtWidgets.QApplication(sys.argv)
 window = MyApplicationMainWindow()
 window.show()
