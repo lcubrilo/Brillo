@@ -93,6 +93,7 @@ class MyApplicationMainWindow(QMainWindow):
         self.reloadButton.setEnabled(True)
         # enable right part of the screen
         self.tabWidget.setEnabled(True)
+        self.browseButton.setEnabled(False)
 
         # assuming all tables have the same columns
 
@@ -102,20 +103,22 @@ class MyApplicationMainWindow(QMainWindow):
         self.updateConstants()
         
         # display operations
-        operations = ["Divide by constant", "Convert unit"]
+        operations = ["Inverse/reciprocal value (^-1)", "Divide by constant", "Subtract by constant", "Convert unit"]
         for op in operations:
             self.operationCombo.addItem(op)
     
     def checkIfConstantNeeded(self, index):
         item = self.operationCombo.itemText(index)
-        if item in ["Divide by constant"]:
+        if item in ["Divide by constant", "Subtract by constant"]:
             self.constCombo.setEnabled(True)
         else:
             self.constCombo.setEnabled(False)
 
     def editColumn(self):
         operations = {
-            "Divide by constant": brlopack.divide,
+            "Inverse/reciprocal value (^-1)": brlopack.inverseColumn,
+            "Divide by constant": brlopack.divide, 
+            "Subtract by constant": brlopack.subtractConstant, 
             "Convert unit": arrayConversion.adapter_ConvertPrefix
         }
 
@@ -156,7 +159,7 @@ class MyApplicationMainWindow(QMainWindow):
     def updateConstants(self, currFile=None, currTable=None):
         if currFile == None or currTable == None:
             currFile, currTable = self.getCurrentFileTable()
-
+        self.constCombo.clear()
         widget = QWidget()
         layout = QHBoxLayout(widget)
         tmp = QPushButton("+"); tmp.setMaximumSize(50,50); layout.addWidget(tmp); self.addConstantButton = tmp; self.addConstantButton.clicked.connect(self.openAddConstantDialog)
@@ -166,6 +169,7 @@ class MyApplicationMainWindow(QMainWindow):
             tmpWidget.line_edit.setEnabled(False)
             layout.addWidget(tmpWidget)
             tmpWidget.unitChanged.connect(self.paket.changeUnitOfConstant)
+            self.constCombo.addItem(constName)
         self.constantScrollArea.setWidget(widget)
 
         file, table = self.getCurrentFileTable(True)

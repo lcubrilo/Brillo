@@ -99,12 +99,28 @@ class brlopack:
                 for table in self.tellMeTablesInFile(file):
                     self.data[file][table].to_excel(writer, sheet_name=table)
 
-    def divide(self, columnName, newColumnName, constName):
+    def doOperation(self, operation, columnName, newColumnName, constName):
         for file in self.tellMeFiles():
             for table in self.tellMeTablesInFile(file):
-                (constantVal, constantUnit) = self.constants[file][table][constName]
-                self.data[file][table][newColumnName] = [el/constantVal for el in self.data[file][table][columnName]]
-    
+                if constName!=None:
+                    try:
+                        (constantVal, constantUnit) = self.constants[file][table][constName]
+                    except:
+                        continue
+                else: constantVal = None
+                arr = []
+                for el in self.data[file][table][columnName]:
+                    try: arr.append(operation(el, constantVal))
+                    except: arr.append("NaN")
+
+                self.data[file][table][newColumnName] = arr
+
+    def divide(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el/const, columnName, newColumnName, constName)
+        
+    def subtractConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el-const, columnName, newColumnName, constName)
+
+    def inverseColumn(self, columnName, newColumnName, constName=None): self.doOperation(lambda el, const:el**-1, columnName, newColumnName, constName)
+
     def changeUnitOfConstant(self, constantName, unitPrefix):
         for file in self.tellMeFiles():
             for table in self.tellMeTablesInFile(file):
