@@ -107,6 +107,7 @@ class brlopack:
     def changeUnitOfConstant(self, constantName, unitPrefix):
         for file in self.tellMeFiles():
             for table in self.tellMeTablesInFile(file):
+                if constantName not in self.constants[file][table]: continue
                 self.constants[file][table][constantName] = valueConversion.convertPrefix(self.constants[file][table][constantName], unitPrefix)
 # tests
 def testLoad():

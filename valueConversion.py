@@ -72,6 +72,8 @@ def addPrefix(value, prefix):
     return (numericalValue, prefix + unitOfMeasurement)
 
 def convertPrefix(value, prefix):
+    num, unit = value
+    value = (int(num), unit)
     normalized = removePrefix(value)
     return addPrefix(normalized, prefix)
 

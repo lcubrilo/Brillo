@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt, QPoint, QFile
 from QMeasurement import QMeasurement
 
@@ -8,7 +8,23 @@ from QMeasurement import QMeasurement
 from PandasModelClass import PandasModel
 from brlopack import brlopack
 import arrayConversion
+from addConstantDialog import addConstantDialog
 class MyApplicationMainWindow(QMainWindow):
+    def openAddConstantDialog(self):
+        items = self.treeWidget.selectedItems()
+        if not items: return
+        file = items[0].parent().text(0)
+        dialog = addConstantDialog(file)
+        dialog.constantLoaded.connect(self.addingTheConstant)
+        dialog.exec_()
+    
+    def addingTheConstant(self, constName, value, unit):
+        items = self.treeWidget.selectedItems()
+        if not items: return
+        file = items[0].parent().text(0)
+        for table in self.paket.tellMeTablesInFile(file):
+            self.paket.constants[file][table][constName] = (value, unit)
+    
     def loadCode(self):
         fileName = QFileDialog.getOpenFileName(self, "Open file", "macros")[0]
         file = QFile(fileName)
@@ -111,10 +127,12 @@ class MyApplicationMainWindow(QMainWindow):
         # display columns that can be deleted
         widget = QWidget()
         layout = QHBoxLayout(widget)
+        
         for val in self.model._dataframe.columns.values:
             tmpCheckBox = QCheckBox(val, self.columnsScrollArea)
             tmpCheckBox.setCheckState(Qt.Checked)
             layout.addWidget(tmpCheckBox)
+        
         self.columnsScrollArea.setWidget(widget)
         self.scrollAreaLayout = layout
 
@@ -225,6 +243,7 @@ class MyApplicationMainWindow(QMainWindow):
         # Load Constants
         widget = QWidget()
         layout = QHBoxLayout(widget)
+        tmp = QPushButton("+"); tmp.setMaximumSize(50,50); layout.addWidget(tmp); self.addConstantButton = tmp; self.addConstantButton.clicked.connect(self.openAddConstantDialog)
         for constName in self.paket.constants[currFile][currTable]:
             value = self.paket.constants[currFile][currTable][constName]
             tmpWidget = QMeasurement(constName, value)

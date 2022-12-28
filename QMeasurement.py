@@ -13,6 +13,7 @@ class QMeasurement(QWidget):
         self.label = QLabel(measurementName)
 
         num, unit = measurement
+        measurement = (int(num), unit)
         # Create the line edit
         self.line_edit = QLineEdit(self)
         self.line_edit.setText(str(num))
