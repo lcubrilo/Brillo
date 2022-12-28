@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from improvedFunctions import loadFile
+from improvedFunctions import load_aixACCTFile, load_probostatFile, whichFileToLoad
 import pandas as pd
 import valueConversion
 class brlopack:
@@ -11,6 +11,7 @@ class brlopack:
     def __init__(self, data=None):
         if data != None:
             self.data = data
+            self.wantedFiles = (key for key in data)
     
     # Tell files
     def browseDirectories(self):
@@ -28,7 +29,7 @@ class brlopack:
         
         self.data = {}; self.plotFiles = {}; self.constants = {}
         for file in self.wantedFiles:
-            self.data[file], self.constants[file] = loadFile(file)
+            self.data[file], self.constants[file] = whichFileToLoad(file)
             self.plotFiles[file] = {}
             for table in self.data[file]:
                 self.plotFiles[file][table] = True

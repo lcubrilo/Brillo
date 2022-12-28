@@ -9,6 +9,7 @@ from PandasModelClass import PandasModel
 from brlopack import brlopack
 import arrayConversion
 from addConstantDialog import addConstantDialog
+
 class MyApplicationMainWindow(QMainWindow):
     def openAddConstantDialog(self):
         items = self.treeWidget.selectedItems()
@@ -349,9 +350,47 @@ class MyApplicationMainWindow(QMainWindow):
                 print("bruh")
         
         self.updateColumns()
-            
-app = QtWidgets.QApplication(sys.argv)
-window = MyApplicationMainWindow()
-window.show()
-app.exec()
 
+def aplikacija():                
+    app = QtWidgets.QApplication(sys.argv)
+    window = MyApplicationMainWindow()
+    window.show()
+    app.exec()
+
+def readCSV(fileName):
+    
+    f = open(fileName, "r") # open the file
+    matrix = [] # get an empty table ready
+    for line in f: # go line by line in file - that is gonna become our rows in table
+        if line == "\n": continue # skip empty rows; "\n" means "newline"
+        tmpArr = line.split(";") # separate values by the ";" character and store in a temporary array
+        if len(tmpArr) > 1: tmpArr=tmpArr[1:] # they always had the first one empty, delete it
+        if len(tmpArr) == 1: continue # if it has just one element it is pre-table bullshit
+        if not tmpArr[0].isdigit(): # this only happens in the header row (where names of columns are)
+            n = len("X data for ")
+            for i in range(1, len(tmpArr)):
+                tmpArr[i] = tmpArr[i][n:] # this removes "X data for " from beginning of column name
+
+        # this keeps only even (not odd) column to avoid repeating data
+        tmpArr = [tmpArr[i] for i in range(len(tmpArr)) if i%2==0 or i==1]
+        matrix.append(tmpArr) # after processing this row, add it to table
+    f.close()
+    from pandas import DataFrame
+    df = DataFrame(matrix[1:], columns=matrix[0])
+    return {fileName:{"table1":df}}
+
+"""data = readCSV("data/BCTZ_cicle16-2022-10-09-For easy export.csv")
+paket = brlopack(data)
+for file in paket.tellMeFiles():
+    for table in paket.tellMeTablesInFile(file):
+        print(paket.data[file][table].info())"""
+"""
+paket = brlopack()
+paket.tellFiles(["data/BCTZ_cicle16-2022-10-09-For easy export.csv"])
+paket.loadFiles()
+
+for file in paket.tellMeFiles():
+    for table in paket.tellMeTablesInFile(file):
+        print("\n\n{}, {}".format(file, table))
+        print(paket.data[file][table].info())"""
+aplikacija()

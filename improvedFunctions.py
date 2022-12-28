@@ -78,7 +78,8 @@ def getValue(string, valueName, terminator = "\n", suffix = ": ", subfunction = 
     return (float(numericData), unitOfMeasurement)
 
 # Main function
-def loadFile(fileName, printSummary = False):
+def load_aixACCTFile(fileName, printSummary = False):
+    if not fileName.endswith(".dat"): raise Exception("Expected a .dat file of aixACCT.")
     lines = fileToStr(fileName)
 
     sections = sectionTheFile(lines, printSummary)
@@ -91,9 +92,40 @@ def loadFile(fileName, printSummary = False):
     
     return dataFrameList, constantsList
 
+def load_probostatFile(fileName):
+    if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
+    f = open(fileName, "r") # open the file
+    matrix = [] # get an empty table ready
+    for line in f: # go line by line in file - that is gonna become our rows in table
+        if line == "\n": continue # skip empty rows; "\n" means "newline"
+        tmpArr = line.split(";") # separate values by the ";" character and store in a temporary array
+        if len(tmpArr) > 1: tmpArr=tmpArr[1:] # they always had the first one empty, delete it
+        if len(tmpArr) == 1: continue # if it has just one element it is pre-table bullshit
+        if not tmpArr[0].isdigit(): # this only happens in the header row (where names of columns are)
+            n = len("X data for ")
+            for i in range(1, len(tmpArr)):
+                tmpArr[i] = tmpArr[i][n:] # this removes "X data for " from beginning of column name
+
+        # this keeps only even (not odd) column to avoid repeating data
+        tmpArr = [tmpArr[i] for i in range(len(tmpArr)) if i%2==0 or i==1]
+        matrix.append(tmpArr) # after processing this row, add it to table
+    f.close()
+    from pandas import DataFrame
+    df = DataFrame(matrix[1:], columns=matrix[0])
+    return {"table1":df}, {"table1":{}}
+
+def whichFileToLoad(fileName):
+    possibilities = {
+        ".dat": load_aixACCTFile,
+        ".csv": load_probostatFile
+    }
+    for fileExtension in possibilities:
+        if fileName.endswith(fileExtension):
+            return possibilities[fileExtension](fileName)
+
 # Test functions
 def testFunction1():            
-    allDataFramesFromTheFile = loadFile("data/BSFO13_RS800_12h_10-150kVcm_RT.dat")
+    allDataFramesFromTheFile = load_aixACCTFile("data/BSFO13_RS800_12h_10-150kVcm_RT.dat")
     print("\n\nHow many Data Frames were loaded: {}".format(len(allDataFramesFromTheFile)))
 
     for key in allDataFramesFromTheFile:
