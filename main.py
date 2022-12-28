@@ -10,7 +10,7 @@ from brlopack import brlopack
 import arrayConversion
 class MyApplicationMainWindow(QMainWindow):
     def loadCode(self):
-        fileName = QFileDialog.getOpenFileName(self, "Open file", "data")[0]
+        fileName = QFileDialog.getOpenFileName(self, "Open file", "macros")[0]
         file = QFile(fileName)
         file.open(QFile.ReadOnly | QFile.Text)
         text = file.readAll()
