@@ -82,7 +82,7 @@
       </widget>
       <widget class="QTabWidget" name="tabWidget">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="minimumSize">
         <size>
@@ -91,7 +91,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="showDataTab">
         <attribute name="title">
@@ -503,32 +503,17 @@
           </layout>
          </item>
          <item>
+          <widget class="QLineEdit" name="filenameLineEdit">
+           <property name="placeholderText">
+            <string>File name</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPlainTextEdit" name="codePlainEdit">
            <property name="plainText">
-            <string># Example code
-convert (&quot;Time [s]&quot;, &quot;Time [ms]&quot;)
-convert (&quot;I2 [A]&quot;, &quot;I2 [mA]&quot;)
-convert (&quot;I3 [A]&quot;, &quot;I3 [mA]&quot;)
-delete (&quot;Time [s]&quot;, &quot;I2 [A]&quot;, &quot;I3 [A]&quot;)
-###
-delete (&quot;I1 [A]&quot;, &quot;P1 [uC/cm2]&quot;, &quot;D1 [nm]&quot;, &quot;CH3 [V]&quot;)
-
-convert (&quot;V+ [V]&quot;, &quot;V+ [kV]&quot;)
-convert (&quot;V- [V]&quot;, &quot;V- [kV]&quot;)
-
-convert (&quot;thickness&quot;, &quot;cm&quot;)
-
-divide (&quot;V+ [kV]&quot;, &quot;thickness&quot;, &quot;E+ [kV/cm]&quot;)
-divide (&quot;V- [kV]&quot;, &quot;thickness&quot;, &quot;E- [kV/cm]&quot;)
-
-delete (&quot;V+ [V]&quot;, &quot;V+ [kV]&quot;, &quot;V- [V]&quot;, &quot;V- [kV]&quot;)
-###
-convert (&quot;thickness&quot;, &quot;nm&quot;)
-divide (&quot;D2 [nm]&quot;, &quot;thickness&quot;, &quot;Strain2 []&quot;)
-divide (&quot;D3 [nm]&quot;, &quot;thickness&quot;, &quot;Strain3 []&quot;)
-
-delete (&quot;D2 [nm]&quot;, &quot;D3 [nm]&quot;)
-export</string>
+            <string>
+</string>
            </property>
           </widget>
          </item>

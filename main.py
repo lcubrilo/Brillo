@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint, QFile
 from QMeasurement import QMeasurement
 
 # Custom packages
@@ -9,6 +9,21 @@ from PandasModelClass import PandasModel
 from brlopack import brlopack
 import arrayConversion
 class MyApplicationMainWindow(QMainWindow):
+    def loadCode(self):
+        fileName = QFileDialog.getOpenFileName(self, "Open file", "data")[0]
+        file = QFile(fileName)
+        file.open(QFile.ReadOnly | QFile.Text)
+        text = file.readAll()
+        text = bytearray(text.data()).decode("utf-8")
+        file.close()
+        self.codePlainEdit.setPlainText(str(text))
+    
+    def saveCode(self):
+        fileName = self.filenameLineEdit.text()
+        with open(fileName, "w") as f:
+            for line in self.codePlainEdit.toPlainText():
+                f.write(line)
+        
     def setupUI(self):
         # Load UI from .ui file
         uic.loadUi("mainwindow_tabs.ui", self)
@@ -22,6 +37,9 @@ class MyApplicationMainWindow(QMainWindow):
         self.reloadButton.clicked.connect(self.reloadFiles)
         self.editButton.clicked.connect(self.editColumn)
         self.runCodeButton.clicked.connect(self.parseCode)
+        self.loadCodeButton.clicked.connect(self.loadCode)
+        self.saveCodeButton.clicked.connect(self.saveCode)
+        
 
         self.operationCombo.currentIndexChanged.connect(self.checkIfConstantNeeded)
 
