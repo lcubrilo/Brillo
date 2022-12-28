@@ -21,4 +21,4 @@ divide ("D2 [nm]", "thickness", "Strain2 []")
 divide ("D3 [nm]", "thickness", "Strain3 []")
 
 delete ("D2 [nm]", "D3 [nm]")
-
+export

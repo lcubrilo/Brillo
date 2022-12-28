@@ -298,6 +298,16 @@ class MyApplicationMainWindow(QMainWindow):
                 constant = args[1]
                 output = args[2]
                 self.paket.divide(input, output, constant)
+            elif line.startswith("export"):
+                msg = QMessageBox()
+                msg.setWindowTitle("Notification")
+                msg.setText("You are saving all of the changes to the data and exporting them to Excel.\nThis will take a while.")
+                x = msg.exec_()
+                self.paket.exportToExcel()
+                msg = QMessageBox()
+                msg.setWindowTitle("Notification")
+                msg.setText("Exporting done!")
+                x = msg.exec_()
             else:
                 print("bruh")
         

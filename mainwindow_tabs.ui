@@ -121,7 +121,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>524</width>
+              <width>526</width>
               <height>63</height>
              </rect>
             </property>
@@ -196,7 +196,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>448</width>
+                 <width>446</width>
                  <height>63</height>
                 </rect>
                </property>
@@ -528,8 +528,7 @@ divide (&quot;D2 [nm]&quot;, &quot;thickness&quot;, &quot;Strain2 []&quot;)
 divide (&quot;D3 [nm]&quot;, &quot;thickness&quot;, &quot;Strain3 []&quot;)
 
 delete (&quot;D2 [nm]&quot;, &quot;D3 [nm]&quot;)
-
-</string>
+export</string>
            </property>
           </widget>
          </item>
@@ -553,7 +552,7 @@ delete (&quot;D2 [nm]&quot;, &quot;D3 [nm]&quot;)
      <x>0</x>
      <y>0</y>
      <width>903</width>
-     <height>23</height>
+     <height>33</height>
     </rect>
    </property>
   </widget>
