@@ -11,20 +11,40 @@ import arrayConversion
 from addConstantDialog import addConstantDialog
 
 class MyApplicationMainWindow(QMainWindow):
+    def getCurrentFileTable(self, notText = False):
+        items = self.treeWidget.selectedItems()
+
+        if type(items) != list or len(items) == 0:
+            point = QPoint(10, 10)
+            table = self.treeWidget.itemAt(point).child(0)
+            file = self.treeWidget.itemAt(point)
+        else:
+            file = items[0].parent()
+            table = items[0]
+        
+        if notText:
+            return file, table
+        else:
+            return file.text(0), table.text(0)
+
     def openAddConstantDialog(self):
         items = self.treeWidget.selectedItems()
         if not items: return
-        file = items[0].parent().text(0)
-        dialog = addConstantDialog(file)
-        dialog.constantLoaded.connect(self.addingTheConstant)
-        dialog.exec_()
+        file, table = self.getCurrentFileTable()
+        self.dialog = addConstantDialog(file)
+        self.dialog.constantLoaded.connect(self.addingTheConstant)
+        self.dialog.exec_()
+        
     
     def addingTheConstant(self, constName, value, unit):
         items = self.treeWidget.selectedItems()
         if not items: return
-        file = items[0].parent().text(0)
-        for table in self.paket.tellMeTablesInFile(file):
-            self.paket.constants[file][table][constName] = (value, unit)
+        file, table = self.getCurrentFileTable()
+        for t in self.paket.tellMeTablesInFile(file):
+            self.paket.constants[file][t][constName] = (float(value), unit)
+        self.constCombo.addItem(constName)
+        self.dialog.done(0)
+        self.updateConstants()
     
     def loadCode(self):
         fileName = QFileDialog.getOpenFileName(self, "Open file", "macros")[0]
@@ -56,7 +76,7 @@ class MyApplicationMainWindow(QMainWindow):
         self.runCodeButton.clicked.connect(self.parseCode)
         self.loadCodeButton.clicked.connect(self.loadCode)
         self.saveCodeButton.clicked.connect(self.saveCode)
-        
+        self.addConstantButton.clicked.connect(self.openAddConstantDialog)
 
         self.operationCombo.currentIndexChanged.connect(self.checkIfConstantNeeded)
 
@@ -80,10 +100,7 @@ class MyApplicationMainWindow(QMainWindow):
         self.updateColumns()
 
         # display constants
-        firstFile = self.paket.tellMeFiles()[0]
-        firstTable = self.paket.tellMeTablesInFile(firstFile)[0]
-        for constName in self.paket.constants[firstFile][firstTable]:
-            self.constCombo.addItem(constName)
+        self.updateConstants()
         
         # display operations
         operations = ["Divide by constant", "Convert unit"]
@@ -136,6 +153,24 @@ class MyApplicationMainWindow(QMainWindow):
         
         self.columnsScrollArea.setWidget(widget)
         self.scrollAreaLayout = layout
+    
+    def updateConstants(self, currFile=None, currTable=None):
+        if currFile == None or currTable == None:
+            currFile, currTable = self.getCurrentFileTable()
+
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        tmp = QPushButton("+"); tmp.setMaximumSize(50,50); layout.addWidget(tmp); self.addConstantButton = tmp; self.addConstantButton.clicked.connect(self.openAddConstantDialog)
+        for constName in self.paket.constants[currFile][currTable]:
+            value = self.paket.constants[currFile][currTable][constName]
+            tmpWidget = QMeasurement(constName, value)
+            tmpWidget.line_edit.setEnabled(False)
+            layout.addWidget(tmpWidget)
+            tmpWidget.unitChanged.connect(self.paket.changeUnitOfConstant)
+        self.constantScrollArea.setWidget(widget)
+
+        file, table = self.getCurrentFileTable(True)
+        self.treeWidget.setCurrentItem(table)
 
     def updateFilesToPlot(self, item, column):
         if item.parent() != None: return
@@ -234,31 +269,13 @@ class MyApplicationMainWindow(QMainWindow):
         #currentItem = self.treeWidget.currentItem()
         if item.parent() == None: return
 
-        currFile = item.parent().text(0)
-        currTable = item.text(0)
+        currFile, currTable = self.getCurrentFileTable()
         dataFrame = self.paket.data[currFile][currTable]
 
         self.model = PandasModel(dataFrame)
         self.tableView.setModel(self.model)
 
-        # Load Constants
-        widget = QWidget()
-        layout = QHBoxLayout(widget)
-        tmp = QPushButton("+"); tmp.setMaximumSize(50,50); layout.addWidget(tmp); self.addConstantButton = tmp; self.addConstantButton.clicked.connect(self.openAddConstantDialog)
-        for constName in self.paket.constants[currFile][currTable]:
-            value = self.paket.constants[currFile][currTable][constName]
-            tmpWidget = QMeasurement(constName, value)
-            tmpWidget.line_edit.setEnabled(False)
-            layout.addWidget(tmpWidget)
-            tmpWidget.unitChanged.connect(self.paket.changeUnitOfConstant)
-            """layout.addWidget(QLabel(constName))
-            
-            tmp = QLineEdit()
-            tmp.setText(str(value))
-            tmp.setEnabled(False)
-            layout.addWidget(tmp)"""
-
-        self.constantScrollArea.setWidget(widget)
+        self.updateConstants(currFile, currTable)
             
     def plotData(self):
         x_axis = self.xAxisCombo.currentText()

@@ -96,7 +96,11 @@ def load_probostatFile(fileName):
     if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
     f = open(fileName, "r") # open the file
     matrix = [] # get an empty table ready
+    x_axis = None
     for line in f: # go line by line in file - that is gonna become our rows in table
+        if not x_axis and line.startswith(";Assigned to Axis: "):
+            index = line.find(";Assigned to Axis: ") + len(";Assigned to Axis: ")
+            x_axis = line[index:].strip()
         if line == "\n": continue # skip empty rows; "\n" means "newline"
         tmpArr = line.split(";") # separate values by the ";" character and store in a temporary array
         if len(tmpArr) > 1: tmpArr=tmpArr[1:] # they always had the first one empty, delete it
@@ -105,10 +109,11 @@ def load_probostatFile(fileName):
             n = len("X data for ")
             for i in range(1, len(tmpArr)):
                 tmpArr[i] = tmpArr[i][n:] # this removes "X data for " from beginning of column name
-
-        # this keeps only even (not odd) column to avoid repeating data
-        tmpArr = [tmpArr[i] for i in range(len(tmpArr)) if i%2==0 or i==1]
-        matrix.append(tmpArr) # after processing this row, add it to table
+            tmpArr = [tmpArr[i] for i in range(len(tmpArr)) if i%2==0 or i==1]
+            tmpArr[1] = x_axis
+        else:
+            tmpArr = [float(tmpArr[i]) for i in range(len(tmpArr)) if i%2==0 or i==1]
+        matrix.append(tmpArr[1:]) # after processing this row, add it to table
     f.close()
     from pandas import DataFrame
     df = DataFrame(matrix[1:], columns=matrix[0])
