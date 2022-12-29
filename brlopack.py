@@ -8,6 +8,26 @@ class brlopack:
     # self.plotFiles {file:[True, False, True]}
     # self.constants[file][table] = [array of consatnts like area thickness etc]
 
+    #@property
+    def getConstants(self, unit = ""):
+        retVal = {}
+        for file in self.tellMeFiles():
+            retVal[file] = {}
+            for table in self.tellMeTablesInFile(file):
+                retVal[file][table] = {}
+                for const in self.constants[file][table]:
+                    retVal[file][table][const] = self.getConstant(file, table, const, unit)
+        return retVal
+    
+    def getConstant(self, file, table, const, unit = ""):
+        try:
+            if unit != "":
+                return valueConversion.convertPrefix(self.constants[file][table][const], unit[0])
+            else:
+                return self.constants[file][table][const]
+        except:
+            return "NaN"
+
     def __init__(self, data=None):
         if data != None:
             self.data = data
@@ -115,16 +135,26 @@ class brlopack:
 
                 self.data[file][table][newColumnName] = arr
 
-    def divide(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el/const, columnName, newColumnName, constName)
-        
+    def divideConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el/const, columnName, newColumnName, constName)
+
+    def divideConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el*const, columnName, newColumnName, constName)
+
     def subtractConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el-const, columnName, newColumnName, constName)
 
+    def addConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el+const, columnName, newColumnName, constName)   
+
     def inverseColumn(self, columnName, newColumnName, constName=None): self.doOperation(lambda el, const:el**-1, columnName, newColumnName, constName)
+
+    def squareColumn(self, columnName, newColumnName, constName=None): self.doOperation(lambda el, const:el**2, columnName, newColumnName, constName)
+    
+    def sqrtColumn(self, columnName, newColumnName, constName=None): self.doOperation(lambda el, const:el**0.5, columnName, newColumnName, constName)
+
 
     def changeUnitOfConstant(self, constantName, unitPrefix):
         for file in self.tellMeFiles():
             for table in self.tellMeTablesInFile(file):
-                if constantName not in self.constants[file][table]: continue
+                if constantName not in self.constants[file][table]: 
+                    continue
                 self.constants[file][table][constantName] = valueConversion.convertPrefix(self.constants[file][table][constantName], unitPrefix)
 # tests
 def testLoad():

@@ -10,6 +10,8 @@ from brlopack import brlopack
 import arrayConversion
 from addConstantDialog import addConstantDialog
 
+# TODO: Constants can become zero after too many conversions due to huge precision loss
+# Solution: do not ever change units in brlopack. only in the gui. then add a getter in the brlopack that says unit in the function name! so it only converts for the output
 class MyApplicationMainWindow(QMainWindow):
     def getCurrentFileTable(self, notText = False):
         items = self.treeWidget.selectedItems()
@@ -56,10 +58,16 @@ class MyApplicationMainWindow(QMainWindow):
     
     def saveCode(self):
         fileName = self.filenameLineEdit.text()
-        with open(fileName, "w") as f:
-            for line in self.codePlainEdit.toPlainText():
-                f.write(line)
-        
+        try:
+            with open(fileName, "w") as f:
+                for line in self.codePlainEdit.toPlainText():
+                    f.write(line)
+        except:
+            msg = QMessageBox()
+            msg.setWindowTitle("Notification")
+            msg.setText("You need to specify a file name")
+            x = msg.exec_()
+
     def setupUI(self):
         # Load UI from .ui file
         uic.loadUi("mainwindow_tabs.ui", self)
@@ -117,7 +125,7 @@ class MyApplicationMainWindow(QMainWindow):
     def editColumn(self):
         operations = {
             "Inverse/reciprocal value (^-1)": brlopack.inverseColumn,
-            "Divide by constant": brlopack.divide, 
+            "Divide by constant": brlopack.divideConstant, 
             "Subtract by constant": brlopack.subtractConstant, 
             "Convert unit": arrayConversion.adapter_ConvertPrefix
         }
@@ -159,6 +167,7 @@ class MyApplicationMainWindow(QMainWindow):
     def updateConstants(self, currFile=None, currTable=None):
         if currFile == None or currTable == None:
             currFile, currTable = self.getCurrentFileTable()
+
         self.constCombo.clear()
         widget = QWidget()
         layout = QHBoxLayout(widget)
@@ -246,6 +255,13 @@ class MyApplicationMainWindow(QMainWindow):
         self.paket.tellFiles(list(self.fileNames))
         self.paket.loadFiles()
 
+        if self.fileNames == []:
+            msg = QMessageBox()
+            msg.setWindowTitle("Notification")
+            msg.setText("An error happened. Try again.")
+            x = msg.exec_()  
+            return
+
         # Populating the tree widget with files and tables
         for i, file in enumerate(self.paket.tellMeFiles()):
             tmp = QTreeWidgetItem(self.treeWidget, [file])
@@ -270,13 +286,15 @@ class MyApplicationMainWindow(QMainWindow):
     def showData(self, item, column):
         # TODO clear prevous??
         #currentItem = self.treeWidget.currentItem()
-        if item.parent() == None: return
+        if item.parent() == None: 
+            return
 
         currFile, currTable = self.getCurrentFileTable()
         dataFrame = self.paket.data[currFile][currTable]
 
         self.model = PandasModel(dataFrame)
         self.tableView.setModel(self.model)
+        self.tableView.resizeColumnsToContents()
 
         self.updateConstants(currFile, currTable)
             
@@ -347,7 +365,7 @@ class MyApplicationMainWindow(QMainWindow):
                     constant = input
                     newPrefix = output[0]
                     self.paket.changeUnitOfConstant(constant, newPrefix)
-                    #print("Constant convert", constant, newPrefix)
+                    self.updateConstants()
                 else: # column convert
                     arrayConversion.adapter_ConvertPrefix(self.paket, input, output)
             
@@ -355,13 +373,15 @@ class MyApplicationMainWindow(QMainWindow):
                 input = args[0]
                 constant = args[1]
                 output = args[2]
-                self.paket.divide(input, output, constant)
+                self.paket.divideConstant(input, output, constant)
             elif line.startswith("export"):
                 msg = QMessageBox()
                 msg.setWindowTitle("Notification")
                 msg.setText("You are saving all of the changes to the data and exporting them to Excel.\nThis will take a while.")
                 x = msg.exec_()
+                
                 self.paket.exportToExcel()
+                
                 msg = QMessageBox()
                 msg.setWindowTitle("Notification")
                 msg.setText("Exporting done!")
@@ -370,6 +390,7 @@ class MyApplicationMainWindow(QMainWindow):
                 print("bruh")
         
         self.updateColumns()
+
 
 def aplikacija():                
     app = QtWidgets.QApplication(sys.argv)

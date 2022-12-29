@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>903</width>
-    <height>675</height>
+    <width>797</width>
+    <height>582</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -21,7 +21,7 @@
   </property>
   <property name="font">
    <font>
-    <pointsize>16</pointsize>
+    <pointsize>14</pointsize>
    </font>
   </property>
   <property name="windowTitle">
@@ -91,7 +91,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="showDataTab">
         <attribute name="title">
@@ -121,7 +121,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>526</width>
+              <width>524</width>
               <height>73</height>
              </rect>
             </property>
@@ -137,6 +137,7 @@
                <property name="font">
                 <font>
                  <pointsize>20</pointsize>
+                 <weight>75</weight>
                  <italic>false</italic>
                  <bold>true</bold>
                  <underline>false</underline>
@@ -233,7 +234,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>446</width>
+                 <width>448</width>
                  <height>63</height>
                 </rect>
                </property>
@@ -572,8 +573,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>903</width>
-     <height>33</height>
+     <width>797</width>
+     <height>36</height>
     </rect>
    </property>
   </widget>

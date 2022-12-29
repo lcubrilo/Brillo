@@ -71,12 +71,31 @@ def addPrefix(value, prefix):
 
     return (numericalValue, prefix + unitOfMeasurement)
 
-def convertPrefix(value, prefix):
+def convertPrefix(value, prefix, primitivePrecisionFix = True):
     num, unit = value
-    value = (int(num), unit)
+    value = (float(num), unit)
     normalized = removePrefix(value)
-    return addPrefix(normalized, prefix)
+    retVal = addPrefix(normalized, prefix)
+    if not primitivePrecisionFix:
+        return retVal
+    else:
+        return fixPrecisionPrimitive(retVal)
 
+def fixPrecisionPrimitive(val):
+    num, unit = val
+    numStr = str(num); numFlo = float(num)
+    susSituation = ["999", "000"]
+    for sus in susSituation:
+        if numStr.__contains__(sus):
+            susIndex = numStr.find(sus)
+            pointIndex = numStr.find(".")
+            deltaIndex = susIndex - pointIndex + 1
+            numFlo = round(numFlo, deltaIndex)
+            break
+    return (num, unit) if numFlo == 0 else (numFlo, unit) 
+
+val = (3.229999678, "cm")
+res = fixPrecisionPrimitive(val)
 
 # tuple to str & vice versa
 def tuple2str(value):
@@ -164,7 +183,7 @@ def testFunctions4():
         
         print("{:e} {} \t  => \t{:e} {}".format(test[0], test[1], res[0], res[1]))
 
-if __name__ == "__main__":
+if __name__ == "__main__2":
     testFunctions1()
     testFunctions2()
     testFunctions3()
