@@ -84,7 +84,7 @@ class brlopack:
         for file in self.tellMeFiles():
             self.shouldIPlotFile(file, True)
 
-    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None):
+    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None):
         fig, ax = plt.subplots()
 
         if fileName == None:

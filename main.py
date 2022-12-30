@@ -306,11 +306,11 @@ class MyApplicationMainWindow(QMainWindow):
         
         self.setupUI2()
 
-        from improvedFunctions import forDataFrame
+        """from improvedFunctions import forDataFrame
         firstFile = self.paket.tellMeFiles()[0]
         firstTable = self.paket.tellMeTablesInFile(firstFile)[0]
         dataFrame = self.paket.data[firstFile][firstTable]
-        res = forDataFrame(dataFrame)
+        res = forDataFrame(dataFrame)"""
         #print(res)
         
     def showData(self, item, column):
@@ -331,11 +331,15 @@ class MyApplicationMainWindow(QMainWindow):
     def plotData(self):
         x_axis = self.xAxisCombo.currentText()
         y_axis = self.yAxisCombo.currentText()
-    
+
         if x_axis == "" or y_axis == "":
             return
-            
-        self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot)
+
+        if self.paket.tellMeFiles()[0].endswith(".csv"):
+            conditionColName="AVG T  [°C]"; minimumValue=200    
+        else:
+            conditionColName=None; minimumValue=None    
+        self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue)
     
     def deleteColumns(self, columnsArg = None):
         self.tableView.setModel(None)
