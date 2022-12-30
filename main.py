@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt, QPoint, QFile
+from PyQt5.QtGui import QFont
 from QMeasurement import QMeasurement
 
 # Custom packages
@@ -13,6 +14,20 @@ from addConstantDialog import addConstantDialog
 # TODO: Constants can become zero after too many conversions due to huge precision loss
 # Solution: do not ever change units in brlopack. only in the gui. then add a getter in the brlopack that says unit in the function name! so it only converts for the output
 class MyApplicationMainWindow(QMainWindow):
+    def keyPressEvent(self, event):
+        # Check for the Ctrl + key
+        if event.modifiers() and Qt.ControlModifier:
+            if (event.key() == Qt.Key_Plus or event.key() ==  Qt.Key_Equal):
+                self.font_size += 2
+            elif event.key() == Qt.Key_Minus:
+                if self.font_size > 3: #don't go into negative
+                    self.font_size -= 2
+            else: return
+        self.setFont(QFont('Arial', self.font_size))
+            
+        super().keyPressEvent(event)
+
+
     def getCurrentFileTable(self, notText = False):
         items = self.treeWidget.selectedItems()
 
@@ -71,6 +86,7 @@ class MyApplicationMainWindow(QMainWindow):
     def setupUI(self):
         # Load UI from .ui file
         uic.loadUi("mainwindow_tabs.ui", self)
+        self.font_size = 12
         self.plotButton.setEnabled(True) # I really dont know why this is necessary... but it is.
         self.exportButton.setEnabled(True) # I really dont know why this is necessary... but it is.
         
@@ -252,13 +268,20 @@ class MyApplicationMainWindow(QMainWindow):
         else:
             self.treeWidget.clear()
 
-        self.paket.tellFiles(list(self.fileNames))
-        self.paket.loadFiles()
+        try:
+            self.paket.tellFiles(list(self.fileNames))
+            self.paket.loadFiles()
+        except:
+            msg = QMessageBox()
+            msg.setWindowTitle("Notification")
+            msg.setText("An error 1 happened. Try again.")
+            x = msg.exec_()  
+            return
 
         if self.fileNames == []:
             msg = QMessageBox()
             msg.setWindowTitle("Notification")
-            msg.setText("An error happened. Try again.")
+            msg.setText("An error 2 happened. Try again.")
             x = msg.exec_()  
             return
 
@@ -282,6 +305,13 @@ class MyApplicationMainWindow(QMainWindow):
                 self.tablesToPlot[file].add(table)
         
         self.setupUI2()
+
+        from improvedFunctions import forDataFrame
+        firstFile = self.paket.tellMeFiles()[0]
+        firstTable = self.paket.tellMeTablesInFile(firstFile)[0]
+        dataFrame = self.paket.data[firstFile][firstTable]
+        res = forDataFrame(dataFrame)
+        #print(res)
         
     def showData(self, item, column):
         # TODO clear prevous??
