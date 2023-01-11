@@ -67,14 +67,14 @@ class MyApplicationMainWindow(QMainWindow):
         file = QFile(fileName)
         file.open(QFile.ReadOnly | QFile.Text)
         text = file.readAll()
-        text = bytearray(text.data()).decode("utf-8")
+        text = bytearray(text.data()).decode("ISO-8859-1")
         file.close()
         self.codePlainEdit.setPlainText(str(text))
     
     def saveCode(self):
         fileName = self.filenameLineEdit.text()
         try:
-            with open(fileName, "w") as f:
+            with open("macros/"+fileName, "w") as f:
                 for line in self.codePlainEdit.toPlainText():
                     f.write(line)
         except:
