@@ -12,7 +12,13 @@ class PandasModel(QAbstractTableModel):
 
     def __init__(self, dataframe: pd.DataFrame, parent=None):
         QAbstractTableModel.__init__(self, parent)
-        self._dataframe = dataframe
+        if type(dataframe) == type(pd.DataFrame()):
+            self._dataframe = dataframe
+        else:
+            try:
+                self._dataframe = pd.DataFrame(dataframe)
+            except:
+                raise Exception("IJS: Need to pass a DataFrame not {}".format(type(dataframe)))
 
     def rowCount(self, parent=QModelIndex()) -> int:
         """ Override method from QAbstractTableModel

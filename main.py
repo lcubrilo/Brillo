@@ -274,14 +274,14 @@ class MyApplicationMainWindow(QMainWindow):
         except:
             msg = QMessageBox()
             msg.setWindowTitle("Notification")
-            msg.setText("An error 1 happened. Try again.")
+            msg.setText("An error 1 happened. Crashed during file load. Try again.")
             x = msg.exec_()  
             return
 
         if self.fileNames == []:
             msg = QMessageBox()
             msg.setWindowTitle("Notification")
-            msg.setText("An error 2 happened. Try again.")
+            msg.setText("An error 2 happened. 0 files loaded. Try again.")
             x = msg.exec_()  
             return
 
@@ -339,8 +339,8 @@ class MyApplicationMainWindow(QMainWindow):
             conditionColName="AVG T  [°C]"; minimumValue=200    
         else:
             conditionColName=None; minimumValue=None    
-        self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue)
-    
+        plotType = self.plotTypeCombo.currentText()
+        self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue, plotType)
     def deleteColumns(self, columnsArg = None):
         self.tableView.setModel(None)
         if not columnsArg:

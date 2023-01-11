@@ -91,7 +91,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="showDataTab">
         <attribute name="title">
@@ -121,7 +121,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>524</width>
+              <width>526</width>
               <height>73</height>
              </rect>
             </property>
@@ -137,7 +137,6 @@
                <property name="font">
                 <font>
                  <pointsize>20</pointsize>
-                 <weight>75</weight>
                  <italic>false</italic>
                  <bold>true</bold>
                  <underline>false</underline>
@@ -234,7 +233,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>448</width>
+                 <width>446</width>
                  <height>63</height>
                 </rect>
                </property>
@@ -470,6 +469,31 @@
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QLabel" name="plotTypeLabel">
+             <property name="text">
+              <string>Plot type</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="plotTypeCombo">
+             <item>
+              <property name="text">
+               <string>Line</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Dotted</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <widget class="QLabel" name="label">
@@ -574,7 +598,7 @@
      <x>0</x>
      <y>0</y>
      <width>797</width>
-     <height>36</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>

@@ -7,6 +7,8 @@ def removeAdjacentValues(df, columnName, val, epsilon=2):
     #newDF = pd.DataFrame(); adjacentDF = pd.DataFrame()
     adjacent = []; rest = []
     for i, row in enumerate(df[columnName]):
+        if type(row) != float:
+            continue
         delta = row-val
         element = df.iloc[i]
         if abs(delta) <= epsilon:
@@ -18,10 +20,15 @@ def removeAdjacentValues(df, columnName, val, epsilon=2):
     return adjacent, rest
 
 def removeMinMax(df, columnName):
-    minn = min(df[columnName])
+    listOfNumbers = []
+    for el in list(df[columnName]):
+        if type(el) == float:
+            listOfNumbers.append(el)
+
+    minn = min(listOfNumbers)
     minn, df2 = removeAdjacentValues(df, columnName, minn)
 
-    maxx = max(df[columnName])
+    maxx = max(listOfNumbers)
     maxx, df2 = removeAdjacentValues(df2, columnName, maxx)
 
     return minn, df2, maxx
@@ -36,16 +43,17 @@ def are_adjacent_integers(df):
     
     return True, -1
 
-def chop_up_to_be_adjacent(df):
+def chop_up_to_be_adjacent(df, columnName):
     retVal = []
     df2 = df
     boolVal, problemIndex = are_adjacent_integers(df2)
     while not boolVal and problemIndex !=0:
-        first, second = df2.iloc[:problemIndex], df2.iloc[problemIndex:]
+        first, second = df2.iloc[:problemIndex+1].dropna(subset=[columnName]), df2.iloc[problemIndex+1:].dropna(subset=[columnName])
         retVal.append(first)
         df2 = second
         boolVal, problemIndex = are_adjacent_integers(df2)
-    retVal.append(second)
+    if not second.empty:
+        retVal.append(second)
     return retVal
 
 
@@ -61,20 +69,31 @@ def isRisingFalling(array):
 
 def forDataFrame(df, columnName = "AVG_T"):
     minn, df2, maxx = removeMinMax(df, columnName)
-    retVal = {"flat":[minn, maxx], "rise":[], "drop":[]}
+    retVal = {"flat": pd.concat([minn, maxx]), "rise":pd.DataFrame(), "drop":pd.DataFrame()}
+    #retVal = {"flat":[minn, maxx], "rise":[], "drop":[]}
     #df2Indeces = df["Index"]
-    severalDF = chop_up_to_be_adjacent(df2)
+    severalDF = chop_up_to_be_adjacent(df2, columnName)
     for someDF in severalDF:
-        coefficient = isRisingFalling(someDF["Index"])
+        coefficient = isRisingFalling(someDF[columnName])
         if coefficient > 0:
-            retVal["rise"].append(someDF)
+            retVal["rise"] = pd.concat([retVal["rise"], someDF])#.append(someDF)
         elif coefficient < 0:
-            retVal["drop"].append(someDF)
+            retVal["drop"] = pd.concat([retVal["drop"], someDF])#.append(someDF)
         elif coefficient == 0:
-            retVal["flat"].append(someDF)
+            retVal["flat"] = pd.concat([retVal["flat"], someDF])#.append(someDF)
         else:
             raise Exception("buraz trenutak")
-            
+    
+    print("into loop")
+    keys = [key for key in retVal]
+    for key in keys:
+        print('iter')
+        if retVal[key].empty:
+            retVal.pop(key)
+        else:
+            print("no need to pop")
+        print("next iteration")
+    print("all good")
     return retVal
     
 

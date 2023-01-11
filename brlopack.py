@@ -84,7 +84,7 @@ class brlopack:
         for file in self.tellMeFiles():
             self.shouldIPlotFile(file, True)
 
-    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None):
+    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line"):
         fig, ax = plt.subplots()
 
         if fileName == None:
@@ -109,7 +109,12 @@ class brlopack:
                 y_data = self.data[file][table][y_axis_columnName]
                 plt.xlabel(x_axis_columnName)
                 plt.ylabel(y_axis_columnName)
-                plt.plot(x_data, y_data, label=table)
+                if plotType == "Line":
+                    plt.plot(x_data, y_data, label=table)
+                elif plotType == "Dotted":
+                    plt.scatter(x_data, y_data, label=table)
+                else:
+                    raise Exception("Plot doesn't know whether to be line or dotted")
             plt.legend()
         plt.show()
     

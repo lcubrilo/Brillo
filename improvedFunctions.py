@@ -141,14 +141,16 @@ def load_probostatFile(fileName):
             if i > 4060:
                 print("yo")
         # after processing this row, add it to table
-        matrix.append(tmpArr[1:]) #removes index column
+        matrix.append(tmpArr) #removes index column
         #matrix.append(tmpArr) #keeps index column
     f.close()
     from pandas import DataFrame
-    df = DataFrame(matrix[1:], columns=matrix[0])
+    df = DataFrame(matrix, columns=matrix[0])
     #return {"table1":df}, {"table1":{}}
-    from oldSplitting import forDataFrame
-    dictionary =  forDataFrame(df)
+    from splitting.newSplittingDF import forDataFrame
+    #df = df.dropna()
+    dictionary =  forDataFrame(df, "AVG T  [°C]")
+    print("all good")
     constants = {key:{} for key in dictionary}
     return dictionary, constants
 
@@ -189,7 +191,7 @@ def testFunction1():
 
 import matplotlib.pyplot as plt
 # Plot
-def plotData(loadedTables, x_axis, y_axis, conditionColName=None, minimumValue=None):
+def plotData(loadedTables, x_axis, y_axis, conditionColName=None, minimumValue=None, plotType="Line"):
     for file in loadedTables:
         # TODO if file checkboxed
         fileData = loadedTables[file]
@@ -200,10 +202,15 @@ def plotData(loadedTables, x_axis, y_axis, conditionColName=None, minimumValue=N
             contour =  fileData[contourName]
             #print("************************\n******************\n\n\nDict {} key {}".format(fileData, contourName))
             #print(contour)
-            df = contour.dropna()
+            #df = contour.dropna() TODO
             if conditionColName != None and minimumValue != None:
                 df.drop(df[df[conditionColName] < minimumValue].index, inplace=True)
-            plt.plot(df[x_axis], df[y_axis])
+            if plotType == "Line":
+                plt.plot(df[x_axis], df[y_axis])
+            elif plotType == "Dotted":
+                plt.scatter(df[x_axis], df[y_axis])
+            else:
+                raise Exception("Plot doesn't know whether to be line or dotted")
         plt.show()
 
 #endregion
