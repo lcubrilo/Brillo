@@ -2,13 +2,13 @@
 delete ("TCC (B) [°C]", "TCT [°C]", "2pt_fwd_resistance  [Ohm]", "2pt_rev_resistance  [Ohm]")
 
 # Normalize time
-subtract ("time [min]", "t0", "time0 [min]")
+subtract ("time [min]", "t0", "Time0 [min]")
 delete("time [min]")
 
 # Get sigma
 multiply ("2 point R avg [Ohm]", "area", "res_area [Ohm*m2]")
 divide ("res_area [Ohm*m2]", "length", "rho [Ohm*m]")
 
-inverse ("rho [Ohm*m]", "sigma [1/Ohm*m]")
+#inverse ("rho [Ohm*m]", "sigma [1/Ohm*m]") #this crashes
 
-delete ("2 point R avg [Ohm]", "area", "res_area [Ohm*m2]")
+delete ("2 point R avg [Ohm]", "res_area [Ohm*m2]")
