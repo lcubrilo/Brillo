@@ -127,25 +127,19 @@ class MyApplicationMainWindow(QMainWindow):
         self.updateConstants()
         
         # display operations
-        operations = ["Inverse/reciprocal value (^-1)", "Divide by constant", "Subtract by constant", "Convert unit"]
-        for op in operations:
+        for i, op in enumerate(self.operationsDictionary):
             self.operationCombo.addItem(op)
+            if i == self.border-1:
+                self.operationCombo.addItem("-----")
     
     def checkIfConstantNeeded(self, index):
         item = self.operationCombo.itemText(index)
-        if item in ["Divide by constant", "Subtract by constant"]:
+        if item in [key for key in self.operationsDictionary][self.border:]:
             self.constCombo.setEnabled(True)
         else:
             self.constCombo.setEnabled(False)
 
     def editColumn(self):
-        operations = {
-            "Inverse/reciprocal value (^-1)": brlopack.inverseColumn,
-            "Divide by constant": brlopack.divideConstant, 
-            "Subtract by constant": brlopack.subtractConstant, 
-            "Convert unit": arrayConversion.adapter_ConvertPrefix
-        }
-
         # Prepare arguments
         inputColumn = self.inputColCombo.currentText()
         operation = self.operationCombo.currentText()
@@ -153,7 +147,9 @@ class MyApplicationMainWindow(QMainWindow):
         outputColumn = self.outputColLineEdit.text()
 
         # Run operation
-        operations[operation](self.paket, inputColumn, outputColumn, constant)
+        if operation == "-----":
+            return
+        self.operationsDictionary[operation](self.paket, inputColumn, outputColumn, constant)
 
         self.updateColumns()
 
@@ -250,6 +246,20 @@ class MyApplicationMainWindow(QMainWindow):
         self.filesToPlot = set()
         self.tablesToPlot = {}
         self.fileNames = None
+
+        self.operationsDictionary = {
+            "Convert unit": arrayConversion.adapter_ConvertPrefix, 
+            "Inverse/reciprocal value (^-1)": brlopack.inverseColumn,
+            "Square value (^2)": brlopack.squareColumn,
+            "Square root value (^0.5)": brlopack.sqrtColumn,
+
+            "Divide by constant": brlopack.divideConstant,
+            "Multiply by constant": brlopack.multiplyConstant,
+            "Add constant": brlopack.addConstant,
+            "Subtract constant": brlopack.subtractConstant
+        }
+
+        self.border = 4
 
     def reloadFiles(self):
         msg = QMessageBox()
@@ -403,11 +413,7 @@ class MyApplicationMainWindow(QMainWindow):
                 else: # column convert
                     arrayConversion.adapter_ConvertPrefix(self.paket, input, output)
             
-            elif line.startswith("divide"):
-                input = args[0]
-                constant = args[1]
-                output = args[2]
-                self.paket.divideConstant(input, output, constant)
+
             elif line.startswith("export"):
                 msg = QMessageBox()
                 msg.setWindowTitle("Notification")
@@ -420,11 +426,49 @@ class MyApplicationMainWindow(QMainWindow):
                 msg.setWindowTitle("Notification")
                 msg.setText("Exporting done!")
                 x = msg.exec_()
+            
+            elif self.operationsWithConstants(line):
+                input = args[0]
+                constant = args[1]
+                output = args[2]
+
+                self.operationsWithConstants(line)(input, output, constant)
+
+            elif self.powerOperations(line):
+                input = args[0]
+                constant = args[1]
+
+                self.powerOperations(line)(input, output)
+
             else:
                 print("bruh")
         
         self.updateColumns()
-
+    
+    def operationsWithConstants(self, line):
+        operations ={
+            "divide": self.paket.divideConstant,
+            "multiply": self.paket.multiplyConstant,
+            "add": self.paket.addConstant,
+            "subtract": self.paket.subtractConstant,
+        }
+        for key in operations:
+            if line.startswith(key):
+                return operations[key]
+        
+        return False
+    
+    def powerOperations(self, line):
+        operations ={
+            "inverse": self.paket.inverseColumn,
+            "square": self.paket.squareColumn,
+            "sqrt": self.paket.sqrtColumn,
+        }
+        for key in operations:
+            if line.startswith(key):
+                return operations[key]
+        
+        return False
 
 def aplikacija():                
     app = QtWidgets.QApplication(sys.argv)

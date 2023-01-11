@@ -142,7 +142,7 @@ class brlopack:
 
     def divideConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el/const, columnName, newColumnName, constName)
 
-    def divideConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el*const, columnName, newColumnName, constName)
+    def multiplyConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el*const, columnName, newColumnName, constName)
 
     def subtractConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el-const, columnName, newColumnName, constName)
 
