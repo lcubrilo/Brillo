@@ -281,6 +281,11 @@ class MyApplicationMainWindow(QMainWindow):
             self.operationCombo.clear()
 
         #try:
+        if len(list(self.fileNames)) > 1 and list(self.fileNames)[0].endswith(".csv"):
+            msg = QMessageBox()
+            msg.setWindowTitle("Notification")
+            msg.setText("You are loading several Probostat files. This takes a while.")
+            x = msg.exec_()  
         self.paket.tellFiles(list(self.fileNames))
         self.paket.loadFiles()
         """except Exception as e:

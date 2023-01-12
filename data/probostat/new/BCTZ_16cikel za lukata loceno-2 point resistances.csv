@@ -5,7 +5,7 @@ Graph
 
 Series
 ;2pt_fwd_resistance [Ohm] X-expression: $N11.TM
-;Assigned to Axis: Time [min]
+;Assigned to Axis: time [min]
 ;2pt_fwd_resistance [Ohm] Y-expression: $N1.M2
 ;Assigned to Axis: Resistance [Ohm]
 

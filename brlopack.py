@@ -50,17 +50,18 @@ class brlopack:
         self.data = {}; self.plotFiles = {}; self.constants = {}
 
         if len(self.wantedFiles) > 1 and self.wantedFiles[0].endswith(".csv"): #TODO very ugly workaround
-            self.data["Probostat"], self.constants["Probostat"] = stitchUp_probostatFiles(self.wantedFiles, "Time [min]")
+            self.data["Probostat"], self.constants["Probostat"] = stitchUp_probostatFiles(self.wantedFiles, "AVG T  [°C]")
+            self.wantedFiles = ["Probostat"]
 
         else:
             for file in self.wantedFiles:
                 self.data[file], self.constants[file] = whichFileToLoad(file, len(self.wantedFiles))
         
         
-        for file in self.wantedFiles:
+        for file in self.tellMeFiles():
             self.plotFiles[file] = {}
-            for table in self.data[file]:
-                print(f"===========\n\n{file}   {table}")
+            for table in self.tellMeTablesInFile(file):
+                #print("===========\n\n{file}   {table}")
                 self.plotFiles[file][table] = True
         
         print("tell me what exception")

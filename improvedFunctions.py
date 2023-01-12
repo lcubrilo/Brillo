@@ -157,10 +157,12 @@ def load_probostatFile(fileName, subFunction=False):
     else:
         return df
 
+x_axis= None
 def load_probostatFile_stitching(fileName, subFunction=False):
     if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
     f = open(fileName, "r") # open the file
     matrix = [] # get an empty table ready
+    global x_axis
     x_axis = None
 
     n = None
@@ -220,8 +222,8 @@ def load_probostatFile_stitching(fileName, subFunction=False):
             x = tmpArr[i]
             y = tmpArr[i+1]
             if x == "NAN" or y=="NAN":continue
-            x = float(x)
-            y = float(y)
+            x = round(float(x), 6)
+            y = round(float(y), 6)
             yColName = columnNames[1+ i//2]
             setOfTimes.add(x)
             newRow = pd.Series({x_axis:x,yColName:y})
@@ -248,7 +250,8 @@ def load_probostatFile_stitching(fileName, subFunction=False):
         constants = {key:{} for key in dictionary}
         return dictionary, constants
     else:"""
-    return {"table":result}, {"table":{}}
+    #return {"table":result}, {"table":{}}
+    return result
 
 if __name__ == "__main__":
     #testSplitRiseFlatFall()
@@ -312,14 +315,22 @@ def plotData(loadedTables, x_axis, y_axis, conditionColName=None, minimumValue=N
 
 #endregion
 
-def stitchUp_probostatFiles(fileList, mainColumn, separationColumn):
+def stitchUp_probostatFiles(fileList, separationColumn):
     loadedDataFrames = []
     for file in fileList:
-        loadedDataFrames.append(load_probostatFile_stitching(file), True)
+        loadedDataFrames.append(load_probostatFile_stitching(file, True))
     
-    df = pd.concat(loadedDataFrames, axis=0, ignore_index=True)
+    #df = pd.concat(loadedDataFrames, axis=0, ignore_index=True)
 
-    dictionary = forDataFrame(df, separationColumn)
+    global x_axis
+    result = pd.DataFrame({x_axis:[]})
+    for df in loadedDataFrames:
+        newResult = pd.merge(result, df, on=x_axis, how='outer')
+        result = newResult
+
+    """dictionary = forDataFrame(result, separationColumn)
     print("all good")
     constants = {key:{} for key in dictionary}
-    return dictionary, constants
+    return dictionary, constants"""
+    result = result.sort_values(by=[x_axis])
+    return {"table":result}, {"table":{}}
