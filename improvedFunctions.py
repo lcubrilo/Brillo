@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from splitting.newSplittingDF import forDataFrame
 
 ##############################################
 #region ########### a i x A C C T ############
@@ -99,7 +99,7 @@ def load_aixACCTFile(fileName, printSummary = False):
 ##################################################
 #region ########### P R O B O S T A T ############
 
-def load_probostatFile(fileName):
+def load_probostatFile(fileName, subFunction=False):
     if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
     f = open(fileName, "r") # open the file
     matrix = [] # get an empty table ready
@@ -144,15 +144,111 @@ def load_probostatFile(fileName):
         matrix.append(tmpArr) #removes index column
         #matrix.append(tmpArr) #keeps index column
     f.close()
-    from pandas import DataFrame
-    df = DataFrame(matrix, columns=matrix[0])
+    
+    df = pd.DataFrame(matrix, columns=matrix[0])
     #return {"table1":df}, {"table1":{}}
-    from splitting.newSplittingDF import forDataFrame
+    
     #df = df.dropna()
-    dictionary =  forDataFrame(df, "AVG T  [°C]")
-    print("all good")
-    constants = {key:{} for key in dictionary}
-    return dictionary, constants
+    if not subFunction:
+        dictionary = forDataFrame(df, "AVG T  [°C]")
+        print("all good")
+        constants = {key:{} for key in dictionary}
+        return dictionary, constants
+    else:
+        return df
+
+def load_probostatFile_stitching(fileName, subFunction=False):
+    if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
+    f = open(fileName, "r") # open the file
+    matrix = [] # get an empty table ready
+    x_axis = None
+
+    n = None
+    columnNames = []; dataFrames = []
+    setOfTimes = set()
+    for j, line in enumerate(f): # go line by line in file - that is gonna become our rows in table
+        # Get x axis from pre-table data
+        if not x_axis and line.startswith(";Assigned to Axis: "):
+            index = line.find(";Assigned to Axis: ") + len(";Assigned to Axis: ")
+            x_axis = line[index:].strip()
+
+        # skip empty rows; "\n" means "newline"
+        if line == "\n":
+            continue 
+        
+        tmpArr = line.split(";") # separate values by the ";" character and store in a temporary array
+        
+        # they always had the first one empty, delete it
+        if len(tmpArr) > 1:
+            tmpArr=tmpArr[1:] 
+        
+        # if it has just one element it is pre-table bullshit
+        if len(tmpArr) == 1:
+            continue 
+
+        tmpArr = tmpArr[1:]
+        if tmpArr[-1] == "\n":
+            tmpArr = tmpArr[:-1]
+
+        try:
+            float(tmpArr[0])
+            isHeader = False
+        except:
+            isHeader = True
+
+        if isHeader: # this only happens in the header row (where names of columns are)
+            if columnNames != []:
+                raise Exception("Not expected order of operations")
+            
+            n = len(tmpArr)
+            nn = len("X data for ")
+            for i in range(0, n):
+                tmpArr[i] = tmpArr[i][nn:] # this removes "Y data for " from beginning of column name
+                if i == 0:
+                    columnNames.append(x_axis)
+                if i%2==1:
+                    columnNames.append(tmpArr[i])
+                    dataFrames.append(pd.DataFrame(columns=[x_axis, columnNames[-1]]))
+
+            continue
+
+        if n != len(tmpArr):
+            raise Exception("CSV file is not valid")
+
+        for i in range(len(tmpArr)):
+            if i%2 == 1: continue
+            x = tmpArr[i]
+            y = tmpArr[i+1]
+            if x == "NAN" or y=="NAN":continue
+            x = float(x)
+            y = float(y)
+            yColName = columnNames[1+ i//2]
+            setOfTimes.add(x)
+            newRow = pd.Series({x_axis:x,yColName:y})
+            dataFrames[i//2] = pd.concat([dataFrames[i//2], newRow.to_frame().T],ignore_index=True)
+
+        
+    f.close()
+
+    #matrix is whole table together
+    #first row colnames, all others table
+    listOfTimes = sorted(list(setOfTimes))
+    result = pd.DataFrame({x_axis:listOfTimes})
+
+    for df in dataFrames:
+        newResult = pd.merge(result, df, on=x_axis, how='outer')
+        result = newResult
+    #df = pd.concat(dataFrames, axis=0, ignore_index=True)
+    #return {"table1":df}, {"table1":{}}
+    
+    #df = df.dropna()
+    """if not subFunction:
+        dictionary = forDataFrame(result, "AVG T  [°C]")
+        print("all good")
+        constants = {key:{} for key in dictionary}
+        return dictionary, constants
+    else:"""
+    return {"table":result}, {"table":{}}
 
 if __name__ == "__main__":
     #testSplitRiseFlatFall()
@@ -169,11 +265,12 @@ if __name__ == "__main__":
 ######################################
 #region ########### MISC ############
 
-def whichFileToLoad(fileName):
+def whichFileToLoad(fileName, n):
     possibilities = {
         ".dat": load_aixACCTFile,
-        ".csv": load_probostatFile
+        ".csv": load_probostatFile_stitching
     }
+
     for fileExtension in possibilities:
         if fileName.endswith(fileExtension):
             return possibilities[fileExtension](fileName)
@@ -214,3 +311,15 @@ def plotData(loadedTables, x_axis, y_axis, conditionColName=None, minimumValue=N
         plt.show()
 
 #endregion
+
+def stitchUp_probostatFiles(fileList, mainColumn, separationColumn):
+    loadedDataFrames = []
+    for file in fileList:
+        loadedDataFrames.append(load_probostatFile_stitching(file), True)
+    
+    df = pd.concat(loadedDataFrames, axis=0, ignore_index=True)
+
+    dictionary = forDataFrame(df, separationColumn)
+    print("all good")
+    constants = {key:{} for key in dictionary}
+    return dictionary, constants

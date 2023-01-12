@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from improvedFunctions import load_aixACCTFile, load_probostatFile, whichFileToLoad
+from improvedFunctions import load_aixACCTFile, load_probostatFile, whichFileToLoad, stitchUp_probostatFiles
 import pandas as pd
 import valueConversion
 class brlopack:
@@ -48,11 +48,22 @@ class brlopack:
             raise Exception("IJS: I don't know which files to load. Either use `browseDirectories` function or the `tellFiles` function.")
         
         self.data = {}; self.plotFiles = {}; self.constants = {}
+
+        if len(self.wantedFiles) > 1 and self.wantedFiles[0].endswith(".csv"): #TODO very ugly workaround
+            self.data["Probostat"], self.constants["Probostat"] = stitchUp_probostatFiles(self.wantedFiles, "Time [min]")
+
+        else:
+            for file in self.wantedFiles:
+                self.data[file], self.constants[file] = whichFileToLoad(file, len(self.wantedFiles))
+        
+        
         for file in self.wantedFiles:
-            self.data[file], self.constants[file] = whichFileToLoad(file)
             self.plotFiles[file] = {}
             for table in self.data[file]:
+                print(f"===========\n\n{file}   {table}")
                 self.plotFiles[file][table] = True
+        
+        print("tell me what exception")
 
     # Inform of data 
     def tellMeFiles(self):

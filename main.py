@@ -280,15 +280,17 @@ class MyApplicationMainWindow(QMainWindow):
             self.treeWidget.clear()
             self.operationCombo.clear()
 
-        try:
-            self.paket.tellFiles(list(self.fileNames))
-            self.paket.loadFiles()
-        except:
+        #try:
+        self.paket.tellFiles(list(self.fileNames))
+        self.paket.loadFiles()
+        """except Exception as e:
             msg = QMessageBox()
             msg.setWindowTitle("Notification")
             msg.setText("An error 1 happened. Crashed during file load. Try again.")
             x = msg.exec_()  
-            return
+
+            print(e)
+            return"""
 
         if self.fileNames == []:
             msg = QMessageBox()
