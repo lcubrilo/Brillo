@@ -127,11 +127,12 @@ class MyApplicationMainWindow(QMainWindow):
         self.updateConstants()
         
         # display operations
+        #if self.operationCombo.currentText == "":
         for i, op in enumerate(self.operationsDictionary):
             self.operationCombo.addItem(op)
             if i == self.border-1:
                 self.operationCombo.addItem("-----")
-    
+
     def checkIfConstantNeeded(self, index):
         item = self.operationCombo.itemText(index)
         if item in [key for key in self.operationsDictionary][self.border:]:
@@ -277,6 +278,7 @@ class MyApplicationMainWindow(QMainWindow):
             raise Exception("Which files am I supposed to load?")
         else:
             self.treeWidget.clear()
+            self.operationCombo.clear()
 
         try:
             self.paket.tellFiles(list(self.fileNames))

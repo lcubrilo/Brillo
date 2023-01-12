@@ -489,6 +489,11 @@
                <string>Dotted</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>Both</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>

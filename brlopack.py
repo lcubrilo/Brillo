@@ -113,6 +113,9 @@ class brlopack:
                     plt.plot(x_data, y_data, label=table)
                 elif plotType == "Dotted":
                     plt.scatter(x_data, y_data, label=table)
+                elif plotType == "Both":
+                    plt.plot(x_data, y_data, label=table)
+                    plt.scatter(x_data, y_data, label=table)
                 else:
                     raise Exception("Plot doesn't know whether to be line or dotted")
             plt.legend()
