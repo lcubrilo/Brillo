@@ -1,19 +1,70 @@
 import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
-from PyQt5.QtCore import Qt, QPoint, QFile
+from PyQt5.QtCore import Qt, QPoint, QFile, QThread, pyqtSignal, QObject
+from PyQt5.QtCore import pyqtProperty as Property
 from PyQt5.QtGui import QFont
 from QMeasurement import QMeasurement
+import time
+import importlib
+import threading
 
 # Custom packages
 from PandasModelClass import PandasModel
-from brlopack import brlopack
+import brlopack
 import arrayConversion
 from addConstantDialog import addConstantDialog
-
+killThread = False
 # TODO: Constants can become zero after too many conversions due to huge precision loss
 # Solution: do not ever change units in brlopack. only in the gui. then add a getter in the brlopack that says unit in the function name! so it only converts for the output
+
+class ProgressValue(QObject):
+    valueChanged = pyqtSignal(int)
+    def __init__(self, value=0):
+        super().__init__()
+        self._value = value
+
+    #@pyqtProperty(int)
+    @Property(int)
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if value != self._value:
+            self._value = value
+            self.valueChanged.emit(value)
+
 class MyApplicationMainWindow(QMainWindow):
+    def splitData(self):
+        importlib.reload(brlopack)
+        columnName = self.splittingColumnCombo.currentText()
+        try:
+            self.paket.separateData(columnName)
+        except:
+            msg = QMessageBox()
+            msg.setWindowTitle("Notification")
+            msg.setText("Splitting failed.")
+            x = msg.exec_()
+
+    def update_progress(self):
+        global killThread
+        if killThread: return
+        step = int(self.progressBar.maximum()/1.4**self.coef)
+
+        while self.progressBar.value() < self.progressBar.maximum() - 2*step:
+            self.progressBar.setValue(self.progressBar.value() + step)
+            time.sleep(0.05)
+        else:
+            #self.progressBarThread.terminate()
+            #self.progressBarThread = ProgressBarThread()
+            self.coef += 1
+            self.progressBar.setValue(1)
+        
+        #self.update_progress()
+        #else:
+            #self.progressBar.setValue(self.progressBar.maximum())
+
     def keyPressEvent(self, event):
         # Check for the Ctrl + key
         if event.modifiers() and Qt.ControlModifier:
@@ -26,7 +77,6 @@ class MyApplicationMainWindow(QMainWindow):
         self.setFont(QFont('Arial', self.font_size))
             
         super().keyPressEvent(event)
-
 
     def getCurrentFileTable(self, notText = False):
         items = self.treeWidget.selectedItems()
@@ -83,6 +133,12 @@ class MyApplicationMainWindow(QMainWindow):
             msg.setText("You need to specify a file name")
             x = msg.exec_()
 
+    def plotStateChanged(self):
+        if self.showCheckbox.isChecked():
+            self.plotButton.setText("Display the final plot")
+        else:
+            self.plotButton.setText("Add this to the final plot")
+
     def setupUI(self):
         # Load UI from .ui file
         uic.loadUi("mainwindow_tabs.ui", self)
@@ -100,8 +156,15 @@ class MyApplicationMainWindow(QMainWindow):
         self.loadCodeButton.clicked.connect(self.loadCode)
         self.saveCodeButton.clicked.connect(self.saveCode)
         self.addConstantButton.clicked.connect(self.openAddConstantDialog)
+        self.splitDataButton.clicked.connect(self.splitData)
+        
+        self.showCheckbox.stateChanged.connect(self.plotStateChanged)
+        
 
         self.operationCombo.currentIndexChanged.connect(self.checkIfConstantNeeded)
+
+        #self.timer = QTimer()
+        #self.timer.timeout.connect(self.update_progress)
 
     def setupUI2(self):
         # treeWidget connections
@@ -120,7 +183,6 @@ class MyApplicationMainWindow(QMainWindow):
         self.browseButton.setEnabled(False)
 
         # assuming all tables have the same columns
-
         self.updateColumns()
 
         # display constants
@@ -132,6 +194,8 @@ class MyApplicationMainWindow(QMainWindow):
             self.operationCombo.addItem(op)
             if i == self.border-1:
                 self.operationCombo.addItem("-----")
+        
+        self.progressBar.setValue(self.progressBar.maximum())
 
     def checkIfConstantNeeded(self, index):
         item = self.operationCombo.itemText(index)
@@ -159,11 +223,13 @@ class MyApplicationMainWindow(QMainWindow):
         self.xAxisCombo.clear()
         self.yAxisCombo.clear()
         self.inputColCombo.clear()
-        
+        self.splittingColumnCombo.clear()
+
         for val in self.model._dataframe.columns.values:
             self.xAxisCombo.addItem(val)
             self.yAxisCombo.addItem(val)
             self.inputColCombo.addItem(val)
+            self.splittingColumnCombo.addItem(val)
 
         # display columns that can be deleted
         widget = QWidget()
@@ -230,37 +296,33 @@ class MyApplicationMainWindow(QMainWindow):
                 self.tablesToPlot[currentFile.text(0)].remove(currentTable.text(0))
                 print("NOW REMOVED HIM FROM LIST")
 
-    def __init__(self):
+    def __init__(self, app):
         super(MyApplicationMainWindow,self).__init__()
         self.setupUI()
-
-        try:
-            from brlopack import brlopack
-            print("Successfully loaded `brlopack` from `brlopack`")
-        except:
-            print("!!!!!!!!!!!!!")
-            print("ERROR: Importing the package was NOT successful.")
+        self.app = app
         
-        self.paket = brlopack()
+        self.paket = brlopack.brlopack()
         self.exportButton.clicked.connect(self.paket.exportToExcel)
         
         self.filesToPlot = set()
         self.tablesToPlot = {}
         self.fileNames = None
 
+        #from brlopack import brlopack.inverseColumn, brlopack.squareColumn, brlopack.sqrtColumn, brlopack.divideConstant, brlopack.multiplyConstant, brlopack.addConstant, brlopack.subtractConstant
         self.operationsDictionary = {
             "Convert unit": arrayConversion.adapter_ConvertPrefix, 
-            "Inverse/reciprocal value (^-1)": brlopack.inverseColumn,
-            "Square value (^2)": brlopack.squareColumn,
-            "Square root value (^0.5)": brlopack.sqrtColumn,
+            "Inverse/reciprocal value (^-1)": self.paket.inverseColumn,
+            "Square value (^2)": self.paket.squareColumn,
+            "Square root value (^0.5)": self.paket.sqrtColumn,
 
-            "Divide by constant": brlopack.divideConstant,
-            "Multiply by constant": brlopack.multiplyConstant,
-            "Add constant": brlopack.addConstant,
-            "Subtract constant": brlopack.subtractConstant
+            "Divide by constant": self.paket.divideConstant,
+            "Multiply by constant": self.paket.multiplyConstant,
+            "Add constant": self.paket.addConstant,
+            "Subtract constant": self.paket.subtractConstant
         }
 
         self.border = 4
+        self.coef = 1
 
     def reloadFiles(self):
         msg = QMessageBox()
@@ -280,14 +342,20 @@ class MyApplicationMainWindow(QMainWindow):
             self.treeWidget.clear()
             self.operationCombo.clear()
 
-        #try:
-        if len(list(self.fileNames)) > 1 and list(self.fileNames)[0].endswith(".csv"):
-            msg = QMessageBox()
-            msg.setWindowTitle("Notification")
-            msg.setText("You are loading several Probostat files. This takes a while.")
-            x = msg.exec_()  
+        self.setEnabled(False)
+        #self.progressBarThread.start()
+        progress_value = ProgressValue()
+        progress_value.valueChanged.connect(self.progressBar.setValue)
+
+        for i in range(101):
+            progress_value.value = i
+        self.app.processEvents() # for updating the bar
+
         self.paket.tellFiles(list(self.fileNames))
-        self.paket.loadFiles()
+        #self.paket.loadFiles()
+        #operationThread = threading.Thread(target=self.paket.loadFiles)
+        
+        #self.progressBarThread.terminate()
         """except Exception as e:
             msg = QMessageBox()
             msg.setWindowTitle("Notification")
@@ -359,7 +427,9 @@ class MyApplicationMainWindow(QMainWindow):
         else:
             conditionColName=None; minimumValue=None    
         plotType = self.plotTypeCombo.currentText()
-        self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue, plotType)
+        show = self.showCheckbox.isChecked()
+        self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue, plotType, show)
+        #TODO
     def deleteColumns(self, columnsArg = None):
         self.tableView.setModel(None)
         if not columnsArg:
@@ -481,8 +551,9 @@ class MyApplicationMainWindow(QMainWindow):
 
 def aplikacija():                
     app = QtWidgets.QApplication(sys.argv)
-    window = MyApplicationMainWindow()
+    window = MyApplicationMainWindow(app)
     window.show()
     app.exec()
 
 aplikacija()
+

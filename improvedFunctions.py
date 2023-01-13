@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from splitting.newSplittingDF import forDataFrame
 
 ##############################################
 #region ########### a i x A C C T ############
@@ -83,6 +82,8 @@ def getValue(string, valueName, terminator = "\n", suffix = ": ", subfunction = 
 # Main function
 def load_aixACCTFile(fileName, printSummary = False):
     if not fileName.endswith(".dat"): raise Exception("Expected a .dat file of aixACCT.")
+    from time import sleep
+    sleep(10)
     lines = fileToStr(fileName)
 
     sections = sectionTheFile(lines, printSummary)
@@ -150,10 +151,11 @@ def load_probostatFile(fileName, subFunction=False):
     
     #df = df.dropna()
     if not subFunction:
-        dictionary = forDataFrame(df, "AVG T  [°C]")
+        """dictionary = forDataFrame(df, "AVG T  [°C]")
         print("all good")
         constants = {key:{} for key in dictionary}
-        return dictionary, constants
+        return dictionary, constants"""
+        return {"probostat":df}, {"probostat":{}}
     else:
         return df
 
@@ -188,7 +190,7 @@ def load_probostatFile_stitching(fileName, subFunction=False):
         if len(tmpArr) == 1:
             continue 
 
-        tmpArr = tmpArr[1:]
+        #tmpArr = tmpArr[1:]
         if tmpArr[-1] == "\n":
             tmpArr = tmpArr[:-1]
 
@@ -206,9 +208,9 @@ def load_probostatFile_stitching(fileName, subFunction=False):
             nn = len("X data for ")
             for i in range(0, n):
                 tmpArr[i] = tmpArr[i][nn:] # this removes "Y data for " from beginning of column name
-                if i == 0:
+                if i == 1:
                     columnNames.append(x_axis)
-                if i%2==1:
+                if i%2==0:
                     columnNames.append(tmpArr[i])
                     dataFrames.append(pd.DataFrame(columns=[x_axis, columnNames[-1]]))
 
@@ -218,16 +220,16 @@ def load_probostatFile_stitching(fileName, subFunction=False):
             raise Exception("CSV file is not valid")
 
         for i in range(len(tmpArr)):
-            if i%2 == 1: continue
+            if i%2 == 0: continue
             x = tmpArr[i]
             y = tmpArr[i+1]
             if x == "NAN" or y=="NAN":continue
             x = round(float(x), 6)
             y = round(float(y), 6)
-            yColName = columnNames[1+ i//2]
+            yColName = columnNames[i//2]
             setOfTimes.add(x)
             newRow = pd.Series({x_axis:x,yColName:y})
-            dataFrames[i//2] = pd.concat([dataFrames[i//2], newRow.to_frame().T],ignore_index=True)
+            dataFrames[1+i//2] = pd.concat([dataFrames[1+i//2], newRow.to_frame().T],ignore_index=True)
 
         
     f.close()
@@ -249,9 +251,11 @@ def load_probostatFile_stitching(fileName, subFunction=False):
         print("all good")
         constants = {key:{} for key in dictionary}
         return dictionary, constants
-    else:"""
-    #return {"table":result}, {"table":{}}
-    return result
+    #else:"""""
+    if not subFunction:
+        return {"table":result}, {"table":{}}
+    else:
+        return result
 
 if __name__ == "__main__":
     #testSplitRiseFlatFall()
@@ -261,7 +265,7 @@ if __name__ == "__main__":
     for roll in rollings:
         for eps in epsilons:
             rolling = roll; epsilon = eps
-            testForDataFrame()
+            #testForDataFrame() #TODO
 
 #endregion
 
@@ -334,3 +338,8 @@ def stitchUp_probostatFiles(fileList, separationColumn):
     return dictionary, constants"""
     result = result.sort_values(by=[x_axis])
     return {"table":result}, {"table":{}}
+
+    dictionary = forDataFrame(result, "AVG T  [°C]")
+    print("all good")
+    constants = {key:{} for key in dictionary}
+    return dictionary, constants

@@ -32,6 +32,7 @@ class brlopack:
         if data != None:
             self.data = data
             self.wantedFiles = (key for key in data)
+        self.fig, self.ax = plt.subplots()
     
     # Tell files
     def browseDirectories(self):
@@ -96,9 +97,8 @@ class brlopack:
         for file in self.tellMeFiles():
             self.shouldIPlotFile(file, True)
 
-    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line"):
-        fig, ax = plt.subplots()
-
+    readyForPlotting = None
+    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True):
         if fileName == None:
             files = self.tellMeFiles()
         elif type(fileName) == list:
@@ -121,18 +121,21 @@ class brlopack:
                 y_data = self.data[file][table][y_axis_columnName]
                 plt.xlabel(x_axis_columnName)
                 plt.ylabel(y_axis_columnName)
+                label = table if not self.ax.lines else table+"_"+y_axis_columnName
                 if plotType == "Line":
-                    plt.plot(x_data, y_data, label=table)
+                    plt.plot(x_data, y_data, label=label)
                 elif plotType == "Dotted":
-                    plt.scatter(x_data, y_data, label=table)
+                    plt.scatter(x_data, y_data, label=label)
                 elif plotType == "Both":
-                    plt.plot(x_data, y_data, label=table)
-                    plt.scatter(x_data, y_data, label=table)
+                    plt.plot(x_data, y_data, label=label)
+                    plt.scatter(x_data, y_data, label=label)
                 else:
                     raise Exception("Plot doesn't know whether to be line or dotted")
             plt.legend()
-        plt.show()
-    
+        if show:
+            plt.show()
+            self.fig, self.ax = plt.subplots()
+
     def exportToExcel(self):
         for file in self.tellMeFiles():
             with pd.ExcelWriter(file+'_output.xlsx') as writer:  
@@ -176,6 +179,15 @@ class brlopack:
                 if constantName not in self.constants[file][table]: 
                     continue
                 self.constants[file][table][constantName] = valueConversion.convertPrefix(self.constants[file][table][constantName], unitPrefix)
+
+    def separateData(self, columnName):
+        from splitting.newSplittingDF import forDataFrame
+        for file in self.tellMeFiles():
+            table = self.tellMeTablesInFile(file)[0]
+            dataFrame = self.data[file][table]
+            self.data[file] = forDataFrame(dataFrame)
+                
+                
 # tests
 def testLoad():
     paket = brlopack()
