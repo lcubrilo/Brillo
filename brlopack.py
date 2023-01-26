@@ -29,6 +29,7 @@ class brlopack:
             return "NaN"
 
     def __init__(self, data=None):
+        self.toPlot = []
         if data != None:
             self.data = data
             self.wantedFiles = (key for key in data)
@@ -44,14 +45,16 @@ class brlopack:
 
     # TODO input: path, extension, bool; outcome: load all files at the path, of the correct extension. if bool, load subdirs as well
 
-    def loadFiles(self):
+    def loadFiles(self, optionalFunct = None):
+        import time
+        #time.sleep(1)
         if self.wantedFiles == None:
             raise Exception("IJS: I don't know which files to load. Either use `browseDirectories` function or the `tellFiles` function.")
         
         self.data = {}; self.plotFiles = {}; self.constants = {}
 
         if len(self.wantedFiles) > 1 and self.wantedFiles[0].endswith(".csv"): #TODO very ugly workaround
-            self.data["Probostat"], self.constants["Probostat"] = stitchUp_probostatFiles(self.wantedFiles, "AVG T  [°C]")
+            self.data["Probostat"], self.constants["Probostat"] = stitchUp_probostatFiles(self.wantedFiles, "time [min]")
             self.wantedFiles = ["Probostat"]
 
         else:
@@ -99,6 +102,11 @@ class brlopack:
 
     readyForPlotting = None
     def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True):
+        self.toPlot.append(y_axis_columnName)
+        
+        if not show: 
+            return
+        
         if fileName == None:
             files = self.tellMeFiles()
         elif type(fileName) == list:
@@ -108,39 +116,48 @@ class brlopack:
         else:
             files = [fileName]
 
-        for file in files:
-            for table in self.tellMeTablesInFile(file):
-                if tableNames == None:
-                    if not self.plotFiles[file][table]:
-                        continue
-                else:
-                    if table not in tableNames[file]:
-                        continue
-                    
-                x_data = self.data[file][table][x_axis_columnName]
-                y_data = self.data[file][table][y_axis_columnName]
-                plt.xlabel(x_axis_columnName)
-                plt.ylabel(y_axis_columnName)
-                label = table if not self.ax.lines else table+"_"+y_axis_columnName
-                if plotType == "Line":
-                    plt.plot(x_data, y_data, label=label)
-                elif plotType == "Dotted":
-                    plt.scatter(x_data, y_data, label=label)
-                elif plotType == "Both":
-                    plt.plot(x_data, y_data, label=label)
-                    plt.scatter(x_data, y_data, label=label)
-                else:
-                    raise Exception("Plot doesn't know whether to be line or dotted")
-            plt.legend()
-        if show:
-            plt.show()
-            self.fig, self.ax = plt.subplots()
+        for y_axis_columnName in self.toPlot:
+            for file in files:
+                for table in self.tellMeTablesInFile(file):
+                    if tableNames == None:
+                        if not self.plotFiles[file][table]:
+                            continue
+                    else:
+                        if table not in tableNames[file]:
+                            continue
+                        
+                    x_data = self.data[file][table][x_axis_columnName]
+                    y_data = self.data[file][table][y_axis_columnName]
+                    plt.xlabel(x_axis_columnName)
+                    plt.ylabel(y_axis_columnName)
+                    label = table+"_"+y_axis_columnName
+                    if plotType == "Line":
+                        plt.plot(x_data, y_data, label=label)
+                    elif plotType == "Dotted":
+                        plt.scatter(x_data, y_data, label=label)
+                    elif plotType == "Both":
+                        plt.plot(x_data, y_data, label=label)
+                        plt.scatter(x_data, y_data, label=label)
+                    else:
+                        raise Exception("IJS: Plot doesn't know whether to be line or dotted")
+                plt.legend()
 
-    def exportToExcel(self):
+        self.toPlot = []
+        plt.show()
+        self.fig, self.ax = plt.subplots()
+
+    def exportToExcel(self, fromPlot=False):
+        if fromPlot:
+            columnNames = self.toPlot
+        else:
+            firstFile = self.tellMeFiles()[0]
+            firstTable = self.tellMeTablesInFile(firstFile)[0]
+            columnNames = self.tellMeColumnsInTable(firstFile, firstTable)
+
         for file in self.tellMeFiles():
             with pd.ExcelWriter(file+'_output.xlsx') as writer:  
                 for table in self.tellMeTablesInFile(file):
-                    self.data[file][table].to_excel(writer, sheet_name=table)
+                    self.data[file][table][columnNames].to_excel(writer, sheet_name=table)
 
     def doOperation(self, operation, columnName, newColumnName, constName):
         for file in self.tellMeFiles():

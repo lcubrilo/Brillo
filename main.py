@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
-from PyQt5.QtCore import Qt, QPoint, QFile, QThread, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QPoint, QFile, QThread, pyqtSignal, QObject, QTimer
 from PyQt5.QtCore import pyqtProperty as Property
 from PyQt5.QtGui import QFont
 from QMeasurement import QMeasurement
@@ -14,11 +14,12 @@ from PandasModelClass import PandasModel
 import brlopack
 import arrayConversion
 from addConstantDialog import addConstantDialog
+from QLoadingMessageBox import QLoadingMessageBox
 killThread = False
 # TODO: Constants can become zero after too many conversions due to huge precision loss
 # Solution: do not ever change units in brlopack. only in the gui. then add a getter in the brlopack that says unit in the function name! so it only converts for the output
 
-class ProgressValue(QObject):
+"""class ProgressValue(QObject):
     valueChanged = pyqtSignal(int)
     def __init__(self, value=0):
         super().__init__()
@@ -33,7 +34,7 @@ class ProgressValue(QObject):
     def value(self, value):
         if value != self._value:
             self._value = value
-            self.valueChanged.emit(value)
+            self.valueChanged.emit(value)"""
 
 class MyApplicationMainWindow(QMainWindow):
     def splitData(self):
@@ -42,28 +43,21 @@ class MyApplicationMainWindow(QMainWindow):
         try:
             self.paket.separateData(columnName)
         except:
-            msg = QMessageBox()
-            msg.setWindowTitle("Notification")
-            msg.setText("Splitting failed.")
-            x = msg.exec_()
+            QLoadingMessageBox(self, "Splitting failed.")
 
     def update_progress(self):
-        global killThread
-        if killThread: return
         step = int(self.progressBar.maximum()/1.4**self.coef)
 
-        while self.progressBar.value() < self.progressBar.maximum() - 2*step:
+        if self.progressBar.value() <= self.progressBar.maximum() - 2*step:
             self.progressBar.setValue(self.progressBar.value() + step)
-            time.sleep(0.05)
         else:
-            #self.progressBarThread.terminate()
-            #self.progressBarThread = ProgressBarThread()
-            self.coef += 1
             self.progressBar.setValue(1)
-        
-        #self.update_progress()
-        #else:
-            #self.progressBar.setValue(self.progressBar.maximum())
+            self.coef +=1
+
+        if self.progressBar.value() <= self.progressBar.maximum():
+            step = int(self.progressBar.maximum()/1.4**self.coef)
+            self.progressBar.setValue(self.progressBar.value() + step)
+            #time.sleep(0.05)
 
     def keyPressEvent(self, event):
         # Check for the Ctrl + key
@@ -128,16 +122,16 @@ class MyApplicationMainWindow(QMainWindow):
                 for line in self.codePlainEdit.toPlainText():
                     f.write(line)
         except:
-            msg = QMessageBox()
-            msg.setWindowTitle("Notification")
-            msg.setText("You need to specify a file name")
-            x = msg.exec_()
+            QLoadingMessageBox(self, "You need to specify a file name")
 
     def plotStateChanged(self):
         if self.showCheckbox.isChecked():
             self.plotButton.setText("Display the final plot")
         else:
             self.plotButton.setText("Add this to the final plot")
+
+    def exportFromPlot(self, columnNames):
+        self.paket.exportToExcel(True)
 
     def setupUI(self):
         # Load UI from .ui file
@@ -163,10 +157,14 @@ class MyApplicationMainWindow(QMainWindow):
 
         self.operationCombo.currentIndexChanged.connect(self.checkIfConstantNeeded)
 
+        
+
+        
         #self.timer = QTimer()
         #self.timer.timeout.connect(self.update_progress)
 
     def setupUI2(self):
+        self.setEnabled(True)
         # treeWidget connections
         self.treeWidget.itemClicked.connect(self.showData)
         self.treeWidget.itemChanged.connect(self.updateFilesToPlot)
@@ -195,7 +193,7 @@ class MyApplicationMainWindow(QMainWindow):
             if i == self.border-1:
                 self.operationCombo.addItem("-----")
         
-        self.progressBar.setValue(self.progressBar.maximum())
+        #self.progressBar.setValue(self.progressBar.maximum())
 
     def checkIfConstantNeeded(self, index):
         item = self.operationCombo.itemText(index)
@@ -302,8 +300,10 @@ class MyApplicationMainWindow(QMainWindow):
         self.app = app
         
         self.paket = brlopack.brlopack()
-        self.exportButton.clicked.connect(self.paket.exportToExcel)
         
+        self.exportButton.clicked.connect(self.paket.exportToExcel)#needs to be here instead of setupUi because of some scope problem, doesnt see self.paket??
+        self.plotExportButton.clicked.connect(self.exportFromPlot)
+
         self.filesToPlot = set()
         self.tablesToPlot = {}
         self.fileNames = None
@@ -322,14 +322,11 @@ class MyApplicationMainWindow(QMainWindow):
         }
 
         self.border = 4
-        self.coef = 1
+        self.coef = 2
 
     def reloadFiles(self):
-        msg = QMessageBox()
+        QLoadingMessageBox(self, "You have reloaded the files. Deleted columns are now back and any newly added ones are gone.")
 
-        msg.setWindowTitle("Notification")
-        msg.setText("You have reloaded the files. Deleted columns are now back and any newly added ones are gone.")
-        x = msg.exec_()
         self.browseFiles(dontBrowse=True)
 
     def browseFiles(self, dontBrowse=False):
@@ -344,32 +341,45 @@ class MyApplicationMainWindow(QMainWindow):
 
         self.setEnabled(False)
         #self.progressBarThread.start()
-        progress_value = ProgressValue()
-        progress_value.valueChanged.connect(self.progressBar.setValue)
+        #progress_value = ProgressValue()
+        #progress_value.valueChanged.connect(self.progressBar.setValue)
 
-        for i in range(101):
-            progress_value.value = i
-        self.app.processEvents() # for updating the bar
 
         self.paket.tellFiles(list(self.fileNames))
-        #self.paket.loadFiles()
+        #self.killThread = False
+        #operationThread = threading.Thread(target=QLoadingMessageBox, args=[self, "Please wait until the files load", True])
+        #operationThread.start()
+        #timer = QTimer()
+        #timer.timeout.connect(self.update_progress)
+        #timer.start(2)
+        #QLoadingMessageBox(self, "Loading the files, please wait.", False)
+
+        from time import time
+
+        now = time()
+
+        self.paket.loadFiles(self.update_progress)
+        self.progressBar.setValue(self.progressBar.maximum())
+
+        delta = round(time()-now, 4)
+        print("Operation lasted {} seconds".format(delta))
+        #self.killThread = True
         #operationThread = threading.Thread(target=self.paket.loadFiles)
-        
+        #operationThread.start()
+        #for i in range(101):
+            #progress_value.value = i
+        #self.app.processEvents() # for updating the bar
+        try:
+            print()
         #self.progressBarThread.terminate()
-        """except Exception as e:
-            msg = QMessageBox()
-            msg.setWindowTitle("Notification")
-            msg.setText("An error 1 happened. Crashed during file load. Try again.")
-            x = msg.exec_()  
+        except Exception as e:
+            QLoadingMessageBox(self, "An error 1 happened. Crashed during file load. Try again.")
 
             print(e)
-            return"""
+            return
 
         if self.fileNames == []:
-            msg = QMessageBox()
-            msg.setWindowTitle("Notification")
-            msg.setText("An error 2 happened. 0 files loaded. Try again.")
-            x = msg.exec_()  
+            QLoadingMessageBox(self, "An error 2 happened. 0 files loaded. Try again.")
             return
 
         # Populating the tree widget with files and tables
@@ -428,6 +438,12 @@ class MyApplicationMainWindow(QMainWindow):
             conditionColName=None; minimumValue=None    
         plotType = self.plotTypeCombo.currentText()
         show = self.showCheckbox.isChecked()
+
+        self.toPlotListWidget.clear()
+        for thingToPlot in self.paket.toPlot:
+            self.toPlotListWidget.addItem(QListWidgetItem(thingToPlot))            
+        self.toPlotListWidget.addItem(QListWidgetItem(y_axis)) 
+
         self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue, plotType, show)
         #TODO
     def deleteColumns(self, columnsArg = None):
@@ -456,11 +472,8 @@ class MyApplicationMainWindow(QMainWindow):
                 for columnToDel in columnsToDelete:
                     del self.paket.data[file][table][columnToDel]
 
-        msg = QMessageBox()
-
-        msg.setWindowTitle("Notification")
-        msg.setText("You have just deleted the columns that were unselected. To get them back, reload the files. (That also means any new ones that were unsaved are going to be lost)")
-        x = msg.exec_()  
+        QLoadingMessageBox(self, "You have just deleted the columns that were unselected. To get them back, reload the files. (That also means any new ones that were unsaved are going to be lost)")
+ 
 
     def parseCode(self):
         #with open("macroExample.txt", "r") as f:
@@ -494,17 +507,11 @@ class MyApplicationMainWindow(QMainWindow):
             
 
             elif line.startswith("export"):
-                msg = QMessageBox()
-                msg.setWindowTitle("Notification")
-                msg.setText("You are saving all of the changes to the data and exporting them to Excel.\nThis will take a while.")
-                x = msg.exec_()
+                QLoadingMessageBox(self, "You are saving all of the changes to the data and exporting them to Excel.\nThis will take a while.")
                 
                 self.paket.exportToExcel()
                 
-                msg = QMessageBox()
-                msg.setWindowTitle("Notification")
-                msg.setText("Exporting done!")
-                x = msg.exec_()
+                QLoadingMessageBox(self, "Exporting done!")
             
             elif self.operationsWithConstants(line):
                 input = args[0]

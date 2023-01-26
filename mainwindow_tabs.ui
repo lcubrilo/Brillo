@@ -147,7 +147,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="showDataTab">
         <attribute name="title">
@@ -633,6 +633,16 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QListWidget" name="toPlotListWidget"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="plotExportButton">
+           <property name="text">
+            <string>Export from plot</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
