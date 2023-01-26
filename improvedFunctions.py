@@ -87,13 +87,13 @@ def load_aixACCTFile(fileName, printSummary = False):
 
     sections = sectionTheFile(lines, printSummary)
 
-    dataFrameList = {}; constantsList ={}
+    dataFrameDict = {}; constantsDict ={}
     for section in sections:
         tmpDataFrame, constants = loadSection(section)
-        dataFrameList[currentTableName] = tmpDataFrame
-        constantsList[currentTableName] = constants
+        dataFrameDict[currentTableName] = tmpDataFrame
+        constantsDict[currentTableName] = constants
     
-    return dataFrameList, constantsList
+    return dataFrameDict, constantsDict
 #endregion
 
 ##################################################
@@ -268,10 +268,28 @@ if __name__ == "__main__":
 ######################################
 #region ########### MISC ############
 
+def load_excel(fileName):
+    dataFrames = {}; constants = {}
+    for sheetName in pd.ExcelFile(fileName).sheet_names:
+        dataFrames[sheetName] = pd.read_excel(fileName, sheet_name=sheetName)
+        constants[sheetName] = dict()
+
+    return dataFrames, constants
+
+def load_csv(fileName):
+    import subprocess
+
+    result = subprocess.run(['csvstat', 'file.csv'], stdout=subprocess.PIPE)
+    output = result.stdout.decode()
+    delimiter = output.split('Delimiter: ')[1].split('\n')[0]
+
+    return {"csv table":pd.read_csv(fileName, sep=delimiter)}, {"csv table":dict()}
+
 def whichFileToLoad(fileName, n):
     possibilities = {
         ".dat": load_aixACCTFile,
-        ".csv": load_probostatFile_stitching
+        ".csv": load_csv,
+        ".xlsx": load_excel
     }
 
     for fileExtension in possibilities:

@@ -114,6 +114,7 @@ class MyApplicationMainWindow(QMainWindow):
         text = bytearray(text.data()).decode("ISO-8859-1")
         file.close()
         self.codePlainEdit.setPlainText(str(text))
+        self.filenameLineEdit.setText(fileName)
     
     def saveCode(self):
         fileName = self.filenameLineEdit.text()
@@ -212,7 +213,7 @@ class MyApplicationMainWindow(QMainWindow):
         # Run operation
         if operation == "-----":
             return
-        self.operationsDictionary[operation](self.paket, inputColumn, outputColumn, constant)
+        self.operationsDictionary[operation](inputColumn, outputColumn, constant)
 
         self.updateColumns()
 

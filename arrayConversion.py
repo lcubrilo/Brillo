@@ -8,7 +8,8 @@ def adapter_divideByValue(paket, oldCol, newCol, val, shouldIDelete=False):
     for file in files:
         for table in paket.tellMeTablesInFile(file):
             paket.data[file][table][newCol] = [el/val for el in paket.data[file][table][oldCol]]
-            if shouldIDelete: del paket.data[file][table][oldCol]
+            if shouldIDelete: 
+                del paket.data[file][table][oldCol]
 
 def divideByValue(array, unit, value):
     (num, un) = value
