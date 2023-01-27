@@ -42,6 +42,7 @@ class MyApplicationMainWindow(QMainWindow):
         columnName = self.splittingColumnCombo.currentText()
         try:
             self.paket.separateData(columnName)
+            self.browseFiles(dontBrowse=True, dontLoad=True)
         except:
             QLoadingMessageBox(self, "Splitting failed.")
 
@@ -343,7 +344,7 @@ class MyApplicationMainWindow(QMainWindow):
 
         self.browseFiles(dontBrowse=True)
 
-    def browseFiles(self, dontBrowse=False):
+    def browseFiles(self, dontBrowse=False, dontLoad=False):
         #self.treeWidget.clear()
         if not dontBrowse:
             self.fileNames = QFileDialog.getOpenFileNames(self, "Open file", "data")[0]
@@ -372,7 +373,9 @@ class MyApplicationMainWindow(QMainWindow):
 
         now = time()
 
-        self.paket.loadFiles(self.update_progress)
+        if not dontLoad:
+            self.paket.loadFiles(self.update_progress)
+
         self.progressBar.setValue(self.progressBar.maximum())
 
         delta = round(time()-now, 4)

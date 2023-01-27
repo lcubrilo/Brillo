@@ -5,6 +5,6 @@ delete ("TCC (B)  [C]", "TCT  [C]", "2pt_fwd_resistance [Ohm]", "2pt_rev_resista
 multiply ("DMM avg R [Ohm]", "area", "res_area [Ohm*m2]")
 divide ("res_area [Ohm*m2]", "length", "rho [Ohm*m]")
 
-#inverse ("rho [Ohm*m]", "sigma [1/Ohm*m]") #this crashes
+inverse ("rho [Ohm*m]", "sigma [1/Ohm*m]") #this crashes
 
 delete ("DMM avg R [Ohm]", "res_area [Ohm*m2]")

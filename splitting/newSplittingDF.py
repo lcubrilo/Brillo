@@ -7,7 +7,7 @@ def removeAdjacentValues(df, columnName, val, epsilon=2):
     #newDF = pd.DataFrame(); adjacentDF = pd.DataFrame()
     adjacent = []; rest = []
     for i, row in enumerate(df[columnName]):
-        if type(row) != float:
+        if type(row) != float or pd.isna(row):
             continue
         delta = row-val
         element = df.iloc[i]
@@ -22,7 +22,7 @@ def removeAdjacentValues(df, columnName, val, epsilon=2):
 def removeMinMax(df, columnName):
     listOfNumbers = []
     for el in list(df[columnName]):
-        if type(el) == float:
+        if type(el) == float and not pd.isna(el):
             listOfNumbers.append(el)
 
     minn = min(listOfNumbers)
@@ -34,11 +34,12 @@ def removeMinMax(df, columnName):
     return minn, df2, maxx
 
 def are_adjacent_integers(df):
+    index = list(df.columns)[0]
     for i in range(len(df) - 1):
         row1 = df.iloc[i]
         row2 = df.iloc[i+1]
         
-        if row2["Index"] - row1["Index"] != 1:
+        if row2[index] - row1[index] != 1:
             return False, i
     
     return True, -1

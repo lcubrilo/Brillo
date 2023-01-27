@@ -109,6 +109,8 @@ class brlopack:
     def plotData(self, x_axis_columnName, y_axes_columnNames, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True):    
         n = len(y_axes_columnNames)
         self.fig, self.axs = plt.subplots(n)
+        x_min = 1.7976931348623157e+308 
+        x_max = -1.7976931348623157e+308
         if n == 0: return
         if n == 1: self.axs = [self.axs]
         
@@ -136,6 +138,7 @@ class brlopack:
                     self.axs[i].set_xlabel(x_axis_columnName)
                     self.axs[i].set_ylabel(y_axis_columnName)
                     label = table+"_"+y_axis_columnName
+
                     if plotType == "Line":
                         self.axs[i].plot(x_data, y_data, label=label)
                     elif plotType == "Dotted":
@@ -145,7 +148,16 @@ class brlopack:
                         self.axs[i].scatter(x_data, y_data, label=label)
                     else:
                         raise Exception("IJS: Plot doesn't know whether to be line or dotted")
+
+                    tmp_min, tmp_max = self.axs[i].get_xlim()
+                    if tmp_min < x_min: x_min = tmp_min
+                    if tmp_max > x_max: x_max = tmp_max
+                
                 self.axs[i].legend()
+
+        for i, y_axis_columnName in enumerate(y_axes_columnNames):
+            self.axs[i].set_xlim(x_min, x_max)
+
         plt.show()
         
 
@@ -208,7 +220,7 @@ class brlopack:
         for file in self.tellMeFiles():
             table = self.tellMeTablesInFile(file)[0]
             dataFrame = self.data[file][table]
-            self.data[file] = forDataFrame(dataFrame)
+            self.data[file] = forDataFrame(dataFrame, columnName)
                 
                 
 # tests
