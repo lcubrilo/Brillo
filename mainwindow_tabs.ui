@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>808</width>
-    <height>688</height>
+    <width>907</width>
+    <height>762</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -147,7 +147,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="showDataTab">
         <attribute name="title">
@@ -551,6 +551,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
             <widget class="QLabel" name="plotTypeLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Plot type</string>
              </property>
@@ -581,6 +587,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <widget class="QLabel" name="label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="maximumSize">
               <size>
                <width>60</width>
@@ -595,43 +607,6 @@
            <item>
             <widget class="QComboBox" name="xAxisCombo"/>
            </item>
-           <item>
-            <widget class="QLabel" name="label_2">
-             <property name="maximumSize">
-              <size>
-               <width>60</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Y axis</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="yAxisCombo"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_9">
-           <item>
-            <widget class="QCheckBox" name="showCheckbox">
-             <property name="text">
-              <string>Show this plot</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="plotButton">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>&lt;--------</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>
@@ -643,17 +618,34 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Y axes added to the plotting list:</string>
+            <string>Y axes</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QListWidget" name="toPlotListWidget">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+          <widget class="QScrollArea" name="yColumnsScrollArea">
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents_3">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>526</width>
+              <height>404</height>
+             </rect>
+            </property>
+           </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="plotButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Show plot</string>
            </property>
           </widget>
          </item>
@@ -722,7 +714,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>808</width>
+     <width>907</width>
      <height>31</height>
     </rect>
    </property>

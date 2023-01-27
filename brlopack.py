@@ -106,12 +106,11 @@ class brlopack:
             self.shouldIPlotFile(file, True)
 
     readyForPlotting = None
-    def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True):
-        self.toPlot.append(y_axis_columnName)
-        self.toPlotX = x_axis_columnName
-        
-        if not show: 
-            return
+    def plotData(self, x_axis_columnName, y_axes_columnNames, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True):    
+        n = len(y_axes_columnNames)
+        self.fig, self.axs = plt.subplots(n)
+        if n == 0: return
+        if n == 1: self.axs = [self.axs]
         
         if fileName == None:
             files = self.tellMeFiles()
@@ -122,7 +121,7 @@ class brlopack:
         else:
             files = [fileName]
 
-        for y_axis_columnName in self.toPlot:
+        for i, y_axis_columnName in enumerate(y_axes_columnNames):
             for file in files:
                 for table in self.tellMeTablesInFile(file):
                     if tableNames == None:
@@ -134,23 +133,21 @@ class brlopack:
                         
                     x_data = self.data[file][table][x_axis_columnName]
                     y_data = self.data[file][table][y_axis_columnName]
-                    plt.xlabel(x_axis_columnName)
-                    plt.ylabel(y_axis_columnName)
+                    self.axs[i].set_xlabel(x_axis_columnName)
+                    self.axs[i].set_ylabel(y_axis_columnName)
                     label = table+"_"+y_axis_columnName
                     if plotType == "Line":
-                        plt.plot(x_data, y_data, label=label)
+                        self.axs[i].plot(x_data, y_data, label=label)
                     elif plotType == "Dotted":
-                        plt.scatter(x_data, y_data, label=label)
+                        self.axs[i].scatter(x_data, y_data, label=label)
                     elif plotType == "Both":
-                        plt.plot(x_data, y_data, label=label)
-                        plt.scatter(x_data, y_data, label=label)
+                        self.axs[i].plot(x_data, y_data, label=label)
+                        self.axs[i].scatter(x_data, y_data, label=label)
                     else:
                         raise Exception("IJS: Plot doesn't know whether to be line or dotted")
-                plt.legend()
-
-        self.toPlot = []
+                self.axs[i].legend()
         plt.show()
-        self.fig, self.ax = plt.subplots()
+        
 
     def exportToExcel(self, columnNames=None):
         if columnNames == None:

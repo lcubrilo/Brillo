@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QVBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt, QPoint, QFile, QThread, pyqtSignal, QObject, QTimer
 from PyQt5.QtCore import pyqtProperty as Property
 from PyQt5.QtGui import QFont
@@ -125,11 +125,11 @@ class MyApplicationMainWindow(QMainWindow):
         except:
             QLoadingMessageBox(self, "You need to specify a file name")
 
-    def plotStateChanged(self):
+    """def plotStateChanged(self):
         if self.showCheckbox.isChecked():
             self.plotButton.setText("Display the final plot")
         else:
-            self.plotButton.setText("Add this to the final plot")
+            self.plotButton.setText("Add this to the final plot")"""
 
     def exportFromPlot(self, columnNames):
         columns = [self.toPlotListWidget.item(i).text() for i in range(self.toPlotListWidget.count())]
@@ -154,7 +154,7 @@ class MyApplicationMainWindow(QMainWindow):
         self.addConstantButton.clicked.connect(self.openAddConstantDialog)
         self.splitDataButton.clicked.connect(self.splitData)
         
-        self.showCheckbox.stateChanged.connect(self.plotStateChanged)
+        #self.showCheckbox.stateChanged.connect(self.plotStateChanged)
         
 
         self.operationCombo.currentIndexChanged.connect(self.checkIfConstantNeeded)
@@ -221,13 +221,13 @@ class MyApplicationMainWindow(QMainWindow):
     def updateColumns(self):
         # populate comboboxes with columns
         self.xAxisCombo.clear()
-        self.yAxisCombo.clear()
+        #self.yAxisCombo.clear()
         self.inputColCombo.clear()
         self.splittingColumnCombo.clear()
 
         for val in self.model._dataframe.columns.values:
             self.xAxisCombo.addItem(val)
-            self.yAxisCombo.addItem(val)
+            #self.yAxisCombo.addItem(val)
             self.inputColCombo.addItem(val)
             self.splittingColumnCombo.addItem(val)
 
@@ -242,6 +242,18 @@ class MyApplicationMainWindow(QMainWindow):
         
         self.columnsScrollArea.setWidget(widget)
         self.scrollAreaLayout = layout
+
+        # display columns that will be plotted
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+
+        for val in self.model._dataframe.columns.values:
+            tmpCheckBox = QCheckBox(val, self.yColumnsScrollArea)
+            tmpCheckBox.setCheckState(Qt.Unchecked)
+            layout.addWidget(tmpCheckBox)
+        
+        self.yColumnsScrollArea.setWidget(widget)
+        self.yScrollAreaLayout = layout
     
     def updateConstants(self, currFile=None, currTable=None):
         if currFile == None or currTable == None:
@@ -426,12 +438,12 @@ class MyApplicationMainWindow(QMainWindow):
         self.tableView.resizeColumnsToContents()
 
         self.updateConstants(currFile, currTable)
-            
-    def plotData(self):
-        x_axis = self.xAxisCombo.currentText()
-        y_axis = self.yAxisCombo.currentText()
 
-        if x_axis == "" or y_axis == "":
+
+    def plotData(self):
+        x_axis = self.xAxisCombo.currentText() 
+        y_axes = [checkBox.text() for checkBox in self.yColumnsScrollArea.findChildren(QCheckBox) if checkBox.checkState() == Qt.Checked] 
+        if x_axis == "" or y_axes == []:
             return
 
         if self.paket.tellMeFiles()[0].endswith(".csv"):
@@ -439,14 +451,9 @@ class MyApplicationMainWindow(QMainWindow):
         else:
             conditionColName=None; minimumValue=None    
         plotType = self.plotTypeCombo.currentText()
-        show = self.showCheckbox.isChecked()
+        #show = self.showCheckbox.isChecked()
 
-        self.toPlotListWidget.clear()
-        for thingToPlot in self.paket.toPlot:
-            self.toPlotListWidget.addItem(QListWidgetItem(thingToPlot))            
-        self.toPlotListWidget.addItem(QListWidgetItem(y_axis)) 
-
-        self.paket.plotData(x_axis, y_axis, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue, plotType, show)
+        self.paket.plotData(x_axis, y_axes, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue, plotType)
         #TODO
     def deleteColumns(self, columnsArg = None):
         self.tableView.setModel(None)
@@ -465,7 +472,7 @@ class MyApplicationMainWindow(QMainWindow):
         for columnName in columnsToDelete:
             index = self.xAxisCombo.findText(columnName)
             self.xAxisCombo.removeItem(index)
-            self.yAxisCombo.removeItem(index)
+            #self.yAxisCombo.removeItem(index)
             self.inputColCombo.removeItem(index)
         
         for file in self.paket.tellMeFiles():
