@@ -158,7 +158,10 @@ class brlopack:
             firstTable = self.tellMeTablesInFile(firstFile)[0]
             columnNames = self.tellMeColumnsInTable(firstFile, firstTable)
         else:
-            columnNames += [self.toPlotX]
+            try:
+                columnNames += [self.toPlotX]
+            except:
+                print("Needed to plot first")
 
         for file in self.tellMeFiles():
             with pd.ExcelWriter(file+'_output.xlsx') as writer:  
