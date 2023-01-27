@@ -132,7 +132,8 @@ class MyApplicationMainWindow(QMainWindow):
             self.plotButton.setText("Add this to the final plot")
 
     def exportFromPlot(self, columnNames):
-        self.paket.exportToExcel(True)
+        columns = [self.toPlotListWidget.item(i).text() for i in range(self.toPlotListWidget.count())]
+        self.paket.exportToExcel(columns)
 
     def setupUI(self):
         # Load UI from .ui file
@@ -519,11 +520,25 @@ class MyApplicationMainWindow(QMainWindow):
                 constant = args[1]
                 output = args[2]
 
+                firstFile = self.paket.tellMeFiles()[0]
+                firstTable = self.paket.tellMeTablesInFile(firstFile)[0]
+
+                if constant not in self.paket.constants[firstFile][firstTable]:
+                    QLoadingMessageBox(self, "This constant ({}) doesn't exist, stopping macro.".format(constant))
+                    return
+                if input not in self.paket.data[firstFile][firstTable].columns:
+                    QLoadingMessageBox(self, "This column ({}) doesn't exist, stopping macro.".format(input))
+                    return
+
                 self.operationsWithConstants(line)(input, output, constant)
 
             elif self.powerOperations(line):
                 input = args[0]
-                constant = args[1]
+                output = args[1]
+
+                if input not in self.paket.data[firstFile][firstTable].columns:
+                    QLoadingMessageBox(self, "This column ({}) doesn't exist, stopping macro.".format(input))
+                    return
 
                 self.powerOperations(line)(input, output)
 

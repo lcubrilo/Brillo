@@ -108,6 +108,7 @@ class brlopack:
     readyForPlotting = None
     def plotData(self, x_axis_columnName, y_axis_columnName, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True):
         self.toPlot.append(y_axis_columnName)
+        self.toPlotX = x_axis_columnName
         
         if not show: 
             return
@@ -151,13 +152,13 @@ class brlopack:
         plt.show()
         self.fig, self.ax = plt.subplots()
 
-    def exportToExcel(self, fromPlot=False):
-        if fromPlot:
-            columnNames = self.toPlot
-        else:
+    def exportToExcel(self, columnNames=None):
+        if columnNames == None:
             firstFile = self.tellMeFiles()[0]
             firstTable = self.tellMeTablesInFile(firstFile)[0]
             columnNames = self.tellMeColumnsInTable(firstFile, firstTable)
+        else:
+            columnNames += [self.toPlotX]
 
         for file in self.tellMeFiles():
             with pd.ExcelWriter(file+'_output.xlsx') as writer:  
