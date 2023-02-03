@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QTreeWidgetItem, QWidget, QCheckBox, QHBoxLayout, QVBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
@@ -167,7 +168,8 @@ class MyApplicationMainWindow(QMainWindow):
 
     def setupUI(self):
         # Load UI from .ui file
-        uic.loadUi("mainwindow_tabs.ui", self)
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "mainwindow_tabs.ui")
+        uic.loadUi(path, self)
         self.font_size = 12
         self.plotButton.setEnabled(True) # I really dont know why this is necessary... but it is.
         self.exportButton.setEnabled(True) # I really dont know why this is necessary... but it is.
@@ -632,11 +634,14 @@ def aplikacija():
     window.codePlainEdit.setProperty('class', 'code_editor')
 
     stylesheet = app.styleSheet()
-    with open('style.qss') as file:
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "style.qss")
+    with open(path) as file:
         app.setStyleSheet(stylesheet + file.read().format(**os.environ))
 
     window.show()
     app.exec()
+    input()
 
-aplikacija()
+if __name__=="__main__":
+    aplikacija()
 
