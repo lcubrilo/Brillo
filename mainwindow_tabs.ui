@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>907</width>
-    <height>762</height>
+    <width>1086</width>
+    <height>1191</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -21,7 +21,7 @@
   </property>
   <property name="font">
    <font>
-    <pointsize>14</pointsize>
+    <pointsize>40</pointsize>
    </font>
   </property>
   <property name="windowTitle">
@@ -147,7 +147,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="showDataTab">
         <attribute name="title">
@@ -177,7 +177,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>526</width>
+              <width>560</width>
               <height>73</height>
              </rect>
             </property>
@@ -289,7 +289,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>446</width>
+                 <width>480</width>
                  <height>63</height>
                 </rect>
                </property>
@@ -588,14 +588,14 @@
            <item>
             <widget class="QLabel" name="label">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="maximumSize">
               <size>
-               <width>60</width>
+               <width>16777215</width>
                <height>16777215</height>
               </size>
              </property>
@@ -605,7 +605,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="xAxisCombo"/>
+            <widget class="QComboBox" name="xAxisCombo">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -632,8 +639,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>526</width>
-              <height>404</height>
+              <width>560</width>
+              <height>475</height>
              </rect>
             </property>
            </widget>
@@ -714,8 +721,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>907</width>
-     <height>31</height>
+     <width>1086</width>
+     <height>76</height>
     </rect>
    </property>
   </widget>

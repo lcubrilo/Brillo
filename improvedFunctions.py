@@ -33,25 +33,42 @@ currentTableName = None
 
 def loadSection(section, shouldPrint=False, sectionName="Contour "):
     # Some preprocessing
-    lastLine = "Measurement Status: 0\n"
-    index = section.index(lastLine) + len(lastLine)
+    lastLine = "Measurement Status:"
+    index = section.index("\n",section.index(lastLine))+1
     
     dataBeforeTable = section[:index]
     
-    global currentTableName; currentTableName = sectionName + dataBeforeTable[:dataBeforeTable.index("\n")]
+    global currentTableName; redniBrojTabele = dataBeforeTable[:dataBeforeTable.index("\n")]
     
     # AFAIK the only useful data we need are area and thickness. TODO check if we need others
     area = getValue(dataBeforeTable, "Area [mm2]")
     thickness = getValue(dataBeforeTable, "Thickness [nm]") # TODO doesn't get unit of measurement SADA GA DOBIJA, ZASTO
+    try:
+        amplitude = getValue(dataBeforeTable, "Hysteresis Amplitude [V]")
+
+        thickness_val_cm = thickness[0]/10e7
+        amp_val_kv = amplitude[0]/10e3
+        el_field_strength = round(amp_val_kv/thickness_val_cm, 6)
+
+        currentTableName = "{}.  {} kV/cm".format(redniBrojTabele, el_field_strength)
+    except:
+        currentTableName = sectionName + redniBrojTabele
+
     #thickness = float(thickness[0]) # That perhaps answers the question above. Why do this?
 
     # Now get the table from the string - MAIN PART
     table = section.strip()[index:].split("\n")
+    if table[-1] == "Data": table = table[:-1]
     for i, line in enumerate(table):
         table[i] = table[i].strip().split("\t")
         if i == 0: continue
+        if table[i] == "" or len(table[i]) == 1 or type(table[i]) != type(list()): table.remove(table[i]); continue
+        
         for j, cell in enumerate(table[i]):
-            table[i][j] = float(table[i][j])
+            try:
+                table[i][j] = float(table[i][j])
+            except:
+                continue
 
     # Separate column names
     columnNames = table[0]

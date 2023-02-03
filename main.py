@@ -1,13 +1,12 @@
 import sys
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QListWidgetItem, QTreeWidgetItem, QTreeWidget, QWidget, QCheckBox, QHBoxLayout, QVBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
-from PyQt5.QtCore import Qt, QPoint, QFile, QThread, pyqtSignal, QObject, QTimer
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QTreeWidgetItem, QWidget, QCheckBox, QHBoxLayout, QVBoxLayout, QMessageBox, QLabel, QLineEdit, QPushButton
+from PyQt5.QtCore import Qt, QPoint, QFile, QTextStream
 from PyQt5.QtCore import pyqtProperty as Property
 from PyQt5.QtGui import QFont
 from QMeasurement import QMeasurement
-import time
 import importlib
-import threading
+from qt_material import apply_stylesheet
 
 # Custom packages
 from PandasModelClass import PandasModel
@@ -60,6 +59,30 @@ class MyApplicationMainWindow(QMainWindow):
             self.progressBar.setValue(self.progressBar.value() + step)
             #time.sleep(0.05)
 
+    def overrideText(self, inputQSS, new_value):
+        i = 0
+        while i < len(inputQSS):
+            try:
+                start_index = inputQSS.index("font-size:", i) + len("font-size:")
+                end_index = inputQSS.index("px;", start_index)
+                old_value = inputQSS[start_index:end_index].strip()
+                inputQSS = inputQSS.replace(f"font-size: {old_value}px", f"font-size: {new_value}px")
+                i = start_index + len(f"{new_value}px")
+            except:
+                break
+
+        i = 0  
+        while i < len(inputQSS):
+            try:
+                start_index = inputQSS.index("padding:", i) + len("padding:")
+                end_index = inputQSS.index("px;", start_index)
+                old_value = inputQSS[start_index:end_index].strip()
+                new_value = int(old_value) + 1
+                inputQSS = inputQSS.replace(f"padding: {old_value}px", f"padding: {new_value}px")
+                i = start_index + len(f"{new_value}px")
+            except:
+                return inputQSS
+
     def keyPressEvent(self, event):
         # Check for the Ctrl + key
         if event.modifiers() and Qt.ControlModifier:
@@ -70,6 +93,10 @@ class MyApplicationMainWindow(QMainWindow):
                     self.font_size -= 2
             else: return
         self.setFont(QFont('Arial', self.font_size))
+
+        stylesheet = self.app.styleSheet()
+        self.app.setStyleSheet(self.overrideText(stylesheet, self.font_size))
+            
             
         super().keyPressEvent(event)
 
@@ -133,8 +160,10 @@ class MyApplicationMainWindow(QMainWindow):
             self.plotButton.setText("Add this to the final plot")"""
 
     def exportFromPlot(self, columnNames):
-        columns = [self.toPlotListWidget.item(i).text() for i in range(self.toPlotListWidget.count())]
-        self.paket.exportToExcel(columns)
+        
+        checkBoxes = [item for item in self.yColumnsScrollArea.widget().children() if type(item) == type(QCheckBox())]
+        columnsToExport = [item.text() for item in checkBoxes if item.isChecked()]
+        self.paket.exportToExcel(columnsToExport)
 
     def setupUI(self):
         # Load UI from .ui file
@@ -215,7 +244,11 @@ class MyApplicationMainWindow(QMainWindow):
         # Run operation
         if operation == "-----":
             return
-        self.operationsDictionary[operation](inputColumn, outputColumn, constant)
+        
+        if operation in ["Convert unit"]:
+            self.operationsDictionary[operation](self.paket, inputColumn, outputColumn, constant)
+        else:
+            self.operationsDictionary[operation](inputColumn, outputColumn, constant)
 
         self.updateColumns()
 
@@ -225,6 +258,7 @@ class MyApplicationMainWindow(QMainWindow):
         #self.yAxisCombo.clear()
         self.inputColCombo.clear()
         self.splittingColumnCombo.clear()
+        #self.yColumnsScrollArea.clear()
 
         for val in self.model._dataframe.columns.values:
             self.xAxisCombo.addItem(val)
@@ -374,7 +408,7 @@ class MyApplicationMainWindow(QMainWindow):
         now = time()
 
         if not dontLoad:
-            self.paket.loadFiles(self.update_progress)
+             self.paket.loadFiles(self.update_progress)
 
         self.progressBar.setValue(self.progressBar.maximum())
 
@@ -472,11 +506,13 @@ class MyApplicationMainWindow(QMainWindow):
         else:
             columnsToDelete =  columnsArg
 
-        for columnName in columnsToDelete:
+        """for columnName in columnsToDelete:
             index = self.xAxisCombo.findText(columnName)
             self.xAxisCombo.removeItem(index)
             #self.yAxisCombo.removeItem(index)
-            self.inputColCombo.removeItem(index)
+            self.yColumnsScrollArea.removeItem(columnName)
+            self.inputColCombo.removeItem(index)"""
+        
         
         for file in self.paket.tellMeFiles():
             for table in self.paket.tellMeTablesInFile(file):
@@ -485,7 +521,7 @@ class MyApplicationMainWindow(QMainWindow):
                     del self.paket.data[file][table][columnToDel]
 
         QLoadingMessageBox(self, "You have just deleted the columns that were unselected. To get them back, reload the files. (That also means any new ones that were unsaved are going to be lost)")
- 
+        self.updateColumns()
 
     def parseCode(self):
         #with open("macroExample.txt", "r") as f:
@@ -581,10 +617,24 @@ class MyApplicationMainWindow(QMainWindow):
                 return operations[key]
         
         return False
+    
+import os
+
+
 
 def aplikacija():                
     app = QtWidgets.QApplication(sys.argv)
+
+    apply_stylesheet(app, theme='dark_teal.xml')
+
     window = MyApplicationMainWindow(app)
+    window.setWindowTitle("Brillo")
+    window.codePlainEdit.setProperty('class', 'code_editor')
+
+    stylesheet = app.styleSheet()
+    with open('style.qss') as file:
+        app.setStyleSheet(stylesheet + file.read().format(**os.environ))
+
     window.show()
     app.exec()
 
