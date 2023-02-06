@@ -2,7 +2,7 @@
 delete ("TCC (B)  [C]", "TCT  [C]", "2pt_fwd_resistance [Ohm]", "2pt_rev_resistance [Ohm]")
 
 # Get sigma
-multiply ("DMM avg R [Ohm]", "area", "res_area [Ohm*m2]")
+multiply ("DMM avg R [Ohm]", "surface", "res_area [Ohm*m2]")
 divide ("res_area [Ohm*m2]", "length", "rho [Ohm*m]")
 
 inverse ("rho [Ohm*m]", "sigma [1/Ohm*m]") #this crashes

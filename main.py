@@ -161,10 +161,19 @@ class MyApplicationMainWindow(QMainWindow):
             self.plotButton.setText("Add this to the final plot")"""
 
     def exportFromPlot(self, columnNames):
-        
+
+        x_axis = self.xAxisCombo.currentText()
         checkBoxes = [item for item in self.yColumnsScrollArea.widget().children() if type(item) == type(QCheckBox())]
-        columnsToExport = [item.text() for item in checkBoxes if item.isChecked()]
-        self.paket.exportToExcel(columnsToExport)
+        y_axes = [item.text() for item in checkBoxes if item.isChecked()]
+        columnsToExport = [x_axis] + y_axes 
+
+        tablesToExport = [item for item in self.yColumnsScrollArea.widget().children() if type(item) == type(QCheckBox())]
+        y_axes = [item.text() for item in checkBoxes if item.isChecked()]
+
+        directory = QFileDialog.getExistingDirectory(self, "Select Directory", "")
+
+
+        self.paket.exportToExcel(directory, columnsToExport, self.filesToPlot, self.tablesToPlot)
 
     def setupUI(self):
         # Load UI from .ui file
@@ -345,6 +354,10 @@ class MyApplicationMainWindow(QMainWindow):
                 self.tablesToPlot[currentFile.text(0)].remove(currentTable.text(0))
                 print("NOW REMOVED HIM FROM LIST")
 
+    def prepareForExport(self):
+        directory = QFileDialog.getExistingDirectory(self, "Select Directory", "")
+        self.paket.exportToExcel(directory)
+
     def __init__(self, app):
         super(MyApplicationMainWindow,self).__init__()
         self.setupUI()
@@ -352,7 +365,7 @@ class MyApplicationMainWindow(QMainWindow):
         
         self.paket = brlopack.brlopack()
         
-        self.exportButton.clicked.connect(self.paket.exportToExcel)#needs to be here instead of setupUi because of some scope problem, doesnt see self.paket??
+        self.exportButton.clicked.connect(self.prepareForExport)#needs to be here instead of setupUi because of some scope problem, doesnt see self.paket??
         self.plotExportButton.clicked.connect(self.exportFromPlot)
 
         self.filesToPlot = set()
@@ -492,7 +505,7 @@ class MyApplicationMainWindow(QMainWindow):
         plotType = self.plotTypeCombo.currentText()
         #show = self.showCheckbox.isChecked()
 
-        self.paket.plotData(x_axis, y_axes, self.filesToPlot, self.tablesToPlot,conditionColName, minimumValue, plotType)
+        self.paket.plotData(x_axis, y_axes, self.filesToPlot, self.tablesToPlot, conditionColName, minimumValue, plotType)
         #TODO
     def deleteColumns(self, columnsArg = None):
         self.tableView.setModel(None)
@@ -528,72 +541,75 @@ class MyApplicationMainWindow(QMainWindow):
     def parseCode(self):
         #with open("macroExample.txt", "r") as f:
         for line in self.codePlainEdit.toPlainText().split("\n"):
-            if len(line) <= 1: continue
-            if line[0] == "#" or line == "\n": continue
+            try:
+                if len(line) <= 1: continue
+                if line[0] == "#" or line == "\n": continue
 
-            start = line.find("(")
-            end = line.rfind(")")
+                start = line.find("(")
+                end = line.rfind(")")
 
-            args = line[start+1:end]
-            args = args.split('", "')
-            args[0] = args[0][1:]
-            args[-1] = args[-1][:-1]
-            
-
-            if line.startswith("delete"):
-                self.deleteColumns(args)
-
-            elif line.startswith("convert"):
-                input = args[0]
-                output = args[1]
-
-                if input.find("[") == -1: #constant convert:
-                    constant = input
-                    newPrefix = output[0]
-                    self.paket.changeUnitOfConstant(constant, newPrefix)
-                    self.updateConstants()
-                else: # column convert
-                    arrayConversion.adapter_ConvertPrefix(self.paket, input, output)
-            
-
-            elif line.startswith("export"):
-                QLoadingMessageBox(self, "You are saving all of the changes to the data and exporting them to Excel.\nThis will take a while.")
+                args = line[start+1:end]
+                args = args.split('", "')
+                args[0] = args[0][1:]
+                args[-1] = args[-1][:-1]
                 
-                self.paket.exportToExcel()
+
+                if line.startswith("delete"):
+                    self.deleteColumns(args)
+
+                elif line.startswith("convert"):
+                    input = args[0]
+                    output = args[1]
+
+                    if input.find("[") == -1: #constant convert:
+                        constant = input
+                        newPrefix = output[0]
+                        self.paket.changeUnitOfConstant(constant, newPrefix)
+                        self.updateConstants()
+                    else: # column convert
+                        arrayConversion.adapter_ConvertPrefix(self.paket, input, output)
                 
-                QLoadingMessageBox(self, "Exporting done!")
+
+                elif line.startswith("export"):
+                    QLoadingMessageBox(self, "You are saving all of the changes to the data and exporting them to Excel.\nThis will take a while.")
+                    
+                    self.paket.exportToExcel()
+                    
+                    QLoadingMessageBox(self, "Exporting done!")
+                
+                elif self.operationsWithConstants(line):
+                    input = args[0]
+                    constant = args[1]
+                    output = args[2]
+
+                    firstFile = self.paket.tellMeFiles()[0]
+                    firstTable = self.paket.tellMeTablesInFile(firstFile)[0]
+
+                    if constant not in self.paket.constants[firstFile][firstTable]:
+                        QLoadingMessageBox(self, "This constant ({}) doesn't exist, stopping macro.".format(constant))
+                        return
+                    if input not in self.paket.data[firstFile][firstTable].columns:
+                        QLoadingMessageBox(self, "This column ({}) doesn't exist, stopping macro.".format(input))
+                        return
+
+                    self.operationsWithConstants(line)(input, output, constant)
+
+                elif self.powerOperations(line):
+                    input = args[0]
+                    output = args[1]
+
+                    if input not in self.paket.data[firstFile][firstTable].columns:
+                        QLoadingMessageBox(self, "This column ({}) doesn't exist, stopping macro.".format(input))
+                        return
+
+                    self.powerOperations(line)(input, output)
+
+                else:
+                    print("bruh")
+            except:
+                continue
             
-            elif self.operationsWithConstants(line):
-                input = args[0]
-                constant = args[1]
-                output = args[2]
-
-                firstFile = self.paket.tellMeFiles()[0]
-                firstTable = self.paket.tellMeTablesInFile(firstFile)[0]
-
-                if constant not in self.paket.constants[firstFile][firstTable]:
-                    QLoadingMessageBox(self, "This constant ({}) doesn't exist, stopping macro.".format(constant))
-                    return
-                if input not in self.paket.data[firstFile][firstTable].columns:
-                    QLoadingMessageBox(self, "This column ({}) doesn't exist, stopping macro.".format(input))
-                    return
-
-                self.operationsWithConstants(line)(input, output, constant)
-
-            elif self.powerOperations(line):
-                input = args[0]
-                output = args[1]
-
-                if input not in self.paket.data[firstFile][firstTable].columns:
-                    QLoadingMessageBox(self, "This column ({}) doesn't exist, stopping macro.".format(input))
-                    return
-
-                self.powerOperations(line)(input, output)
-
-            else:
-                print("bruh")
-        
-        self.updateColumns()
+            self.updateColumns()
     
     def operationsWithConstants(self, line):
         operations ={

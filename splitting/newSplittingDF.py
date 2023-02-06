@@ -95,7 +95,7 @@ def forDataFrame(df, columnName = "AVG_T"):
             print("no need to pop")
         print("next iteration")
     print("all good")
-    return retVal
+    return retVal, {"flat":{}, "rise":{}, "drop":{}}
     
 
 if __name__ == "__main__":

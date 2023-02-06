@@ -50,7 +50,7 @@ def loadSection(section, shouldPrint=False, sectionName="Contour "):
         amp_val_kv = amplitude[0]/10e3
         el_field_strength = round(amp_val_kv/thickness_val_cm, 6)
 
-        currentTableName = "{}.  {} kV/cm".format(redniBrojTabele, el_field_strength)
+        currentTableName = "{}.  {} kV_cm".format(redniBrojTabele, el_field_strength)
     except:
         currentTableName = sectionName + redniBrojTabele
 

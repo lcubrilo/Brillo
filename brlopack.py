@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 from improvedFunctions import load_aixACCTFile, load_probostatFile, whichFileToLoad, stitchUp_probostatFiles
 import pandas as pd
 import valueConversion
+import os
+import datetime
 class brlopack:
     # self.data = dict[file][table][column]
     # self.wantedFiles = []
@@ -161,21 +163,33 @@ class brlopack:
         plt.show()
         
 
-    def exportToExcel(self, columnNames=None):
+    def exportToExcel(self, location=None, columnNames=None, filesToPlot = None, tablesToPlot = None):
+        if location == None or location == False:
+            location = os.path.dirname(self.tellMeFiles()[0])
+        now = datetime.datetime.now()
+        now_str = "Brillo export " + now.strftime("%Y-%b-%d; ") + now.strftime("%H-%M-%S")
+
+        location = os.path.join(location, now_str)
+        if not os.path.exists(location):
+            os.makedirs(location)
+        
         if columnNames == None:
             firstFile = self.tellMeFiles()[0]
             firstTable = self.tellMeTablesInFile(firstFile)[0]
             columnNames = self.tellMeColumnsInTable(firstFile, firstTable)
-        else:
-            try:
-                columnNames += [self.toPlotX]
-            except:
-                print("Needed to plot first")
+        
+        if filesToPlot == None: filesToPlot = self.tellMeFiles()
+        #if tablesToPlot == None: tablesToPlot = self.tellMeTablesInFile(filesToPlot[0])
 
-        for file in self.tellMeFiles():
-            with pd.ExcelWriter(file+'_output.xlsx') as writer:  
+        for file in filesToPlot:
+            tmp = os.path.basename(file)
+            output_file_name = os.path.join(location, tmp +'_output.xlsx')
+            with pd.ExcelWriter(output_file_name) as writer:  
                 for table in self.tellMeTablesInFile(file):
+                    if tablesToPlot != None:
+                        if table not in tablesToPlot[file]: continue
                     self.data[file][table][columnNames].to_excel(writer, sheet_name=table)
+            os.startfile(output_file_name)
 
     def doOperation(self, operation, columnName, newColumnName, constName):
         for file in self.tellMeFiles():
@@ -220,7 +234,7 @@ class brlopack:
         for file in self.tellMeFiles():
             table = self.tellMeTablesInFile(file)[0]
             dataFrame = self.data[file][table]
-            self.data[file] = forDataFrame(dataFrame, columnName)
+            self.data[file], self.constants[file] = forDataFrame(dataFrame, columnName)
                 
                 
 # tests
