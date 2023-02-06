@@ -13,9 +13,9 @@ Created during a 3-month Erasmus internship at the Jožef Stefan Institute in Lj
 **Mentor**: Tadej Rojac
 
 ## Installation
-1. Go to the releases on this repository
+1. Go to the [releases on this repository](https://github.com/lcubrilo/Brillo/releases)
 2. Select the newest version
-3. Download UnzipMe.zip
+3. Download [UnzipMe.zip](https://github.com/lcubrilo/Brillo/releases/download/v0.98/UnzipMe.zip)
 4. Unzip the file
 5. Run Brillo.exe
 
