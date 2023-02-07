@@ -1,3 +1,13 @@
 .code_editor {{
   font-family: 'Consolas';font-size: 22px;color:#6effe8;
 }}
+
+QScrollBar::handle:vertical:hover,
+QScrollBar::handle:horizontal:hover 
+{{
+  background: rgba(29, 233, 182, 0.1);
+}}
+
+QScrollBar::handle {{
+  background: #1de9b6;
+}}

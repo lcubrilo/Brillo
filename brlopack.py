@@ -108,7 +108,7 @@ class brlopack:
             self.shouldIPlotFile(file, True)
 
     readyForPlotting = None
-    def plotData(self, x_axis_columnName, y_axes_columnNames, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True):    
+    def plotData(self, x_axis_columnName, y_axes_columnNames, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True, showLegend=True, showGrid=False):    
         n = len(y_axes_columnNames)
         self.fig, self.axs = plt.subplots(n)
         x_min = 1.7976931348623157e+308 
@@ -139,7 +139,8 @@ class brlopack:
                     y_data = self.data[file][table][y_axis_columnName]
                     self.axs[i].set_xlabel(x_axis_columnName)
                     self.axs[i].set_ylabel(y_axis_columnName)
-                    label = table+"_"+y_axis_columnName
+                    label = table+"_"+y_axis_columnName if showLegend else ""
+                    
 
                     if plotType == "Line":
                         self.axs[i].plot(x_data, y_data, label=label)
@@ -154,8 +155,12 @@ class brlopack:
                     tmp_min, tmp_max = self.axs[i].get_xlim()
                     if tmp_min < x_min: x_min = tmp_min
                     if tmp_max > x_max: x_max = tmp_max
+
+                if showGrid:
+                    self.axs[i].grid()
                 
-                self.axs[i].legend()
+                if showLegend:
+                    self.axs[i].legend()
 
         for i, y_axis_columnName in enumerate(y_axes_columnNames):
             self.axs[i].set_xlim(x_min, x_max)

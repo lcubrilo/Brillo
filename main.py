@@ -504,8 +504,9 @@ class MyApplicationMainWindow(QMainWindow):
             conditionColName=None; minimumValue=None    
         plotType = self.plotTypeCombo.currentText()
         #show = self.showCheckbox.isChecked()
-
-        self.paket.plotData(x_axis, y_axes, self.filesToPlot, self.tablesToPlot, conditionColName, minimumValue, plotType)
+        showLegend = self.legendCheckBox.isChecked()
+        showGrid = self.gridCheckBox.isChecked()
+        self.paket.plotData(x_axis, y_axes, self.filesToPlot, self.tablesToPlot, conditionColName, minimumValue, plotType, showLegend=showLegend, showGrid=showGrid)
         #TODO
     def deleteColumns(self, columnsArg = None):
         self.tableView.setModel(None)
