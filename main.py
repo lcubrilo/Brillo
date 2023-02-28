@@ -183,6 +183,8 @@ class MyApplicationMainWindow(QMainWindow):
         self.plotButton.setEnabled(True) # I really dont know why this is necessary... but it is.
         self.exportButton.setEnabled(True) # I really dont know why this is necessary... but it is.
         
+        self.inputColCombo2.setHidden(True)
+
         # Slot-signal connections
         self.browseButton.clicked.connect(self.browseFiles)
         self.plotButton.clicked.connect(self.plotData)  
@@ -233,23 +235,32 @@ class MyApplicationMainWindow(QMainWindow):
         #if self.operationCombo.currentText == "":
         for i, op in enumerate(self.operationsDictionary):
             self.operationCombo.addItem(op)
-            if i == self.border-1:
+            if i == self.border-1 or i == len(list(self.operationsDictionary))-2:
                 self.operationCombo.addItem("-----")
         
         #self.progressBar.setValue(self.progressBar.maximum())
 
     def checkIfConstantNeeded(self, index):
         item = self.operationCombo.itemText(index)
-        if item in [key for key in self.operationsDictionary][self.border:]:
+        keyArray = [key for key in self.operationsDictionary]
+        if item in keyArray[self.border:]:
             self.constCombo.setEnabled(True)
         else:
             self.constCombo.setEnabled(False)
+
+        if item == keyArray[-1]:
+            self.inputColCombo2.setHidden(False)
+        else:
+            self.inputColCombo2.setHidden(True)
 
     def editColumn(self):
         # Prepare arguments
         inputColumn = self.inputColCombo.currentText()
         operation = self.operationCombo.currentText()
-        constant = self.constCombo.currentText()
+        try:
+            constant = self.inputColCombo2.currentText()
+        except:
+            constant = self.constCombo.currentText()
         outputColumn = self.outputColLineEdit.text()
 
         # Run operation
@@ -268,6 +279,7 @@ class MyApplicationMainWindow(QMainWindow):
         self.xAxisCombo.clear()
         #self.yAxisCombo.clear()
         self.inputColCombo.clear()
+        self.inputColCombo2.clear()
         self.splittingColumnCombo.clear()
         #self.yColumnsScrollArea.clear()
 
@@ -275,6 +287,7 @@ class MyApplicationMainWindow(QMainWindow):
             self.xAxisCombo.addItem(val)
             #self.yAxisCombo.addItem(val)
             self.inputColCombo.addItem(val)
+            self.inputColCombo2.addItem(val)
             self.splittingColumnCombo.addItem(val)
 
         # display columns that can be deleted
@@ -382,7 +395,9 @@ class MyApplicationMainWindow(QMainWindow):
             "Divide by constant": self.paket.divideConstant,
             "Multiply by constant": self.paket.multiplyConstant,
             "Add constant": self.paket.addConstant,
-            "Subtract constant": self.paket.subtractConstant
+            "Subtract constant": self.paket.subtractConstant,
+            
+            "Average two columns": self.paket.averageTwoConstants
         }
 
         self.border = 4

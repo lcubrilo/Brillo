@@ -226,6 +226,22 @@ class brlopack:
     
     def sqrtColumn(self, columnName, newColumnName, constName=None): self.doOperation(lambda el, const:el**0.5, columnName, newColumnName, constName)
 
+    def averageTwoConstants(self, columnName, newColumnName, secondColumn):
+        for file in self.tellMeFiles():
+            for table in self.tellMeTablesInFile(file):
+                tmpArr = []
+                tableData = self.data[file][table]
+
+                col1 = tableData[columnName]
+                col2 = tableData[secondColumn]
+
+                for el1, el2 in zip(col1, col2):
+                    try:
+                        tmpArr.append((el1+el2)/2)
+                    except:
+                        tmpArr.append("NaN")
+
+                tableData[newColumnName] = tmpArr
 
     def changeUnitOfConstant(self, constantName, unitPrefix):
         for file in self.tellMeFiles():
