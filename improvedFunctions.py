@@ -6,6 +6,15 @@ from splitting.newSplittingDF import forDataFrame
 #region ########### a i x A C C T ############
 # Helper functions
 def fileToStr(fileName):
+    """
+    Reads the contents of a file and returns them as a single string.
+
+    Args:
+        fileName (str): Path to the file to be read.
+
+    Returns:
+        str: Contents of the file as a single string.
+    """
     print("Loading file {}".format(fileName))
     lines = ""
     with open(fileName) as f:
@@ -15,6 +24,16 @@ def fileToStr(fileName):
     return lines
 
 def sectionTheFile(lines, printSummary):
+    """
+    For aixACCT - sections off the file content into separate tables.
+
+    Args:
+        lines (str): The entire content of the file as a single string.
+        printSummary (bool): Flag to indicate whether to print the summary or not.
+
+    Returns:
+        list: List of sections (tables) from the file, excluding the summary.
+    """
     sections = lines.split("Table ")
 
     title = sections[0].strip()
@@ -32,6 +51,17 @@ def sectionTheFile(lines, printSummary):
 currentTableName = None
 
 def loadSection(section, shouldPrint=False, sectionName="Contour "):
+    """
+    For aixACCT - Loads each section of the aixACCT file into separate tables, including preprocessing.
+
+    Args:
+        section (str): A string representing a section of the file containing a table.
+        shouldPrint (bool, optional): Flag to print the data frame. Defaults to False.
+        sectionName (str, optional): Name for the section. Defaults to "Contour ".
+
+    Returns:
+        tuple: DataFrame representing the table, and interesting constants (e.g., area, thickness).
+    """
     # Some preprocessing
     lastLine = "Measurement Status:"
     index = section.index("\n",section.index(lastLine))+1
@@ -86,6 +116,19 @@ def loadSection(section, shouldPrint=False, sectionName="Contour "):
     return dataFrame, interestingConstants
 
 def getValue(string, valueName, terminator = "\n", suffix = ": ", subfunction = False):
+    """
+    For aixACCT - Reads specific constants or values from a section of an aixACCT table given its value name.
+
+    Args:
+        string (str): The portion of the section containing the value to be read.
+        valueName (str): Name of the value or constant to be retrieved.
+        terminator (str, optional): Character indicating the end of the value. Defaults to "\n".
+        suffix (str, optional): String that comes after the value name. Defaults to ": ".
+        subfunction (bool, optional): Flag to indicate use as a subfunction. Defaults to False.
+
+    Returns:
+        tuple or str: Numeric value and unit, or raw numeric data as a string if subfunction is True.
+    """
     startIndex = string.index(valueName) +  len(valueName + suffix)
     terminatorIndex = string.index(terminator, startIndex) if terminator != None else len(string)
 
@@ -99,6 +142,19 @@ def getValue(string, valueName, terminator = "\n", suffix = ": ", subfunction = 
 
 # Main function
 def load_aixACCTFile(fileName, printSummary = False):
+    """
+    For aixACCT - Orchestrates the reading of an entire aixACCT file, including sectioning and loading tables.
+
+    Args:
+        fileName (str): Path to the .dat aixACCT file to be read.
+        printSummary (bool, optional): Flag to indicate whether to print the summary. Defaults to False.
+
+    Returns:
+        tuple: Dictionary of DataFrames representing the tables, and a dictionary of associated constants.
+
+    Raises:
+        Exception: If the provided file does not have the .dat extension.
+    """
     if not fileName.endswith(".dat"): raise Exception("Expected a .dat file of aixACCT.")
     lines = fileToStr(fileName)
 
@@ -117,6 +173,20 @@ def load_aixACCTFile(fileName, printSummary = False):
 #region ########### P R O B O S T A T ############
 
 def load_probostatFile(fileName, subFunction=False):
+    """
+    Reads and organizes data from a Probostat .csv file into a DataFrame.
+    Called within 'stitchUp_probostatFiles' as a subfunction when multiple files are provided.
+
+    Args:
+        fileName (str): Path to the .csv Probostat file to be read.
+        subFunction (bool, optional): Flag to indicate use as a subfunction. Defaults to False.
+
+    Returns:
+        tuple: Dictionary containing the DataFrame, and a dictionary for constants.
+
+    Raises:
+        Exception: If the provided file does not have the .csv extension.
+    """
     if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
     f = open(fileName, "r") # open the file
     matrix = [] # get an empty table ready
@@ -176,6 +246,20 @@ def load_probostatFile(fileName, subFunction=False):
 
 x_axis= None
 def load_probostatFile_stitching(fileName, subFunction=False):
+    """
+    Processes a Probostat .csv file, extracting and organizing the data into a DataFrame.
+    Used as a subfunction within 'stitchUp_probostatFiles' for stitching multiple files.
+
+    Args:
+        fileName (str): Path to the .csv Probostat file to be read.
+        subFunction (bool, optional): Flag to indicate use as a subfunction. Defaults to False.
+
+    Returns:
+        DataFrame: Resulting DataFrame containing data extracted from the file.
+
+    Raises:
+        Exception: If the provided file does not have the .csv extension or if the file is not valid.
+    """
     if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
     f = open(fileName, "r") # open the file
     matrix = [] # get an empty table ready
@@ -286,6 +370,15 @@ if __name__ == "__main__":
 #region ########### MISC ############
 
 def load_excel(fileName):
+    """
+    Loads data from an Excel file into a DataFrame.
+
+    Args:
+        fileName (str): Path to the Excel file to be read.
+
+    Returns:
+        tuple: Dictionary of DataFrames (one for each sheet), and an empty dictionary for constants.
+    """
     dataFrames = {}; constants = {}
     for sheetName in pd.ExcelFile(fileName).sheet_names:
         dataFrames[sheetName] = pd.read_excel(fileName, sheet_name=sheetName)
@@ -294,6 +387,15 @@ def load_excel(fileName):
     return dataFrames, constants
 
 def load_csv(fileName):
+    """
+    Loads data from a .csv file into a DataFrame using the appropriate delimiter.
+
+    Args:
+        fileName (str): Path to the .csv file to be read.
+
+    Returns:
+        tuple: Dictionary containing the DataFrame, and an empty dictionary for constants.
+    """
     import subprocess
 
     result = subprocess.run(['csvstat', 'file.csv'], stdout=subprocess.PIPE)
@@ -303,6 +405,16 @@ def load_csv(fileName):
     return {"csv table":pd.read_csv(fileName, sep=delimiter)}, {"csv table":dict()}
 
 def whichFileToLoad(fileName, n):
+    """
+    Determines the appropriate loading function based on the file extension.
+
+    Args:
+        fileName (str): Path to the file to be read.
+        n (int): An additional parameter (unused in the current implementation).
+
+    Returns:
+        function: The corresponding loading function for the given file extension.
+    """
     possibilities = {
         ".dat": load_aixACCTFile,
         ".csv": load_csv,
@@ -313,20 +425,27 @@ def whichFileToLoad(fileName, n):
         if fileName.endswith(fileExtension):
             return possibilities[fileExtension](fileName)
 
-# Test functions
-def testFunction1():            
-    allDataFramesFromTheFile = load_aixACCTFile("data/BSFO13_RS800_12h_10-150kVcm_RT.dat")
-    print("\n\nHow many Data Frames were loaded: {}".format(len(allDataFramesFromTheFile)))
-
-    for key in allDataFramesFromTheFile:
-        tmp = allDataFramesFromTheFile[key]
-        print("\n\n{} - size {}".format(key, tmp.shape))
-        tmp.info()
 
 
 import matplotlib.pyplot as plt
 # Plot
 def plotData(loadedTables, x_axis, y_axis, conditionColName=None, minimumValue=None, plotType="Line"):
+    """
+    Plots data from a DataFrame using specified columns for the x and y axes.
+    
+    Args:
+        dataFrame (DataFrame): DataFrame containing the data to be plotted.
+        xColumn (str): Name of the column to be used for the x-axis.
+        yColumns (list): List of column names to be used for the y-axis.
+        title (str): Title of the plot.
+        xLabel (str): Label for the x-axis.
+        yLabel (str): Label for the y-axis.
+        legendLabels (list): List of labels for the legend corresponding to yColumns.
+        saveName (str): Path and filename to save the plot as an image file.
+
+    Returns:
+        None: The function displays the plot and saves it to the specified location.
+    """
     for file in loadedTables:
         # TODO if file checkboxed
         fileData = loadedTables[file]
@@ -351,6 +470,17 @@ def plotData(loadedTables, x_axis, y_axis, conditionColName=None, minimumValue=N
 #endregion
 
 def stitchUp_probostatFiles(fileList, separationColumn):
+    """
+    Stitches together multiple Probostat files into a single DataFrame by aligning common columns
+    and appending unique data. Useful for consolidating different measurements or conditions.
+
+    Args:
+        fileList (list): List of file paths for the Probostat files to be stitched together.
+        separationColumn (str): Name of the column used for separation and alignment (e.g., time).
+
+    Returns:
+        tuple: Dictionary containing the resulting DataFrame, and a dictionary for constants.
+    """
     loadedDataFrames = []
     for file in fileList:
         loadedDataFrames.append(load_probostatFile_stitching(file, True))
@@ -369,3 +499,13 @@ def stitchUp_probostatFiles(fileList, separationColumn):
     return dictionary, constants"""
     result = result.sort_values(by=[x_axis])
     return {"table":result}, {"table":{}}
+
+# Test functions
+def testFunction1():            
+    allDataFramesFromTheFile = load_aixACCTFile("data/BSFO13_RS800_12h_10-150kVcm_RT.dat")
+    print("\n\nHow many Data Frames were loaded: {}".format(len(allDataFramesFromTheFile)))
+
+    for key in allDataFramesFromTheFile:
+        tmp = allDataFramesFromTheFile[key]
+        print("\n\n{} - size {}".format(key, tmp.shape))
+        tmp.info()

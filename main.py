@@ -391,16 +391,18 @@ class MyApplicationMainWindow(QMainWindow):
             "Inverse/reciprocal value (^-1)": self.paket.inverseColumn,
             "Square value (^2)": self.paket.squareColumn,
             "Square root value (^0.5)": self.paket.sqrtColumn,
+            "Natural logarithm": self.paket.logN,
 
+            "Logarithm base constant": self.paket.logConstant,
             "Divide by constant": self.paket.divideConstant,
             "Multiply by constant": self.paket.multiplyConstant,
             "Add constant": self.paket.addConstant,
             "Subtract constant": self.paket.subtractConstant,
             
-            "Average two columns": self.paket.averageTwoConstants
+            "Average two columns": self.paket.averageTwoColumns
         }
 
-        self.border = 4
+        self.border = 5
         self.coef = 2
 
     def reloadFiles(self):
@@ -653,7 +655,6 @@ class MyApplicationMainWindow(QMainWindow):
         return False
     
 import os
-
 
 
 def aplikacija():                

@@ -2,6 +2,17 @@ import valueConversion
 from improvedFunctions import getValue
 
 def adapter_divideByValue(paket, oldCol, newCol, val, shouldIDelete=False):
+    """
+    Divides elements of a specific column by a given value within a brlopack object.
+
+    Args:
+        paket (brlopack): The brlopack object containing files and tables.
+        oldCol (str): The name of the existing column to be divided.
+        newCol (str): The name of the new column to store the result.
+        val (tuple): A tuple containing the numerical value and unit to divide by.
+        shouldIDelete (bool, optional): If True, the old column will be deleted. Defaults to False.
+    """
+
     (num, un) = val
     
     files = paket.tellMeFiles()
@@ -12,6 +23,17 @@ def adapter_divideByValue(paket, oldCol, newCol, val, shouldIDelete=False):
                 del paket.data[file][table][oldCol]
 
 def divideByValue(array, unit, value):
+    """
+    Divides an array by a given value and returns the result with an updated unit.
+
+    Args:
+        array (list): The input array of numerical values.
+        unit (str): The unit of the input values.
+        value (tuple): A tuple containing the numerical value and unit to divide by.
+
+    Returns:
+        tuple: A tuple containing the resulting array and the updated unit.
+    """
     (num, un) = value
     unit += "/"+un
 
@@ -21,13 +43,36 @@ def divideByValue(array, unit, value):
     return res, unit
 
 def adapter_ConvertPrefix(paket, oldCol, newCol, otherArgs=None):
+    """
+    Adapts the conversion of prefixes for columns within a brlopack object.
+
+    Calls the function `adapterConvertPrefix`.
+
+    Args:
+        paket (brlopack): The brlopack object containing files and tables.
+        oldCol (str): The name of the existing column with the original prefix.
+        newCol (str): The name of the new column with the desired prefix.
+        otherArgs (optional): Additional arguments. Defaults to None.
+    """
     for file in paket.tellMeFiles():
         for table in paket.tellMeTablesInFile(file):
             temporary = adapterConvertPrefix(paket.data[file][table][oldCol], oldCol, newCol)
             paket.data[file][table][newCol] = temporary[0]
 
 def adapterConvertPrefix(array, oldColNam, newColNam):
-    
+    """
+    Converts the prefixes of the units in an array based on the old and new column names.
+
+    Calls the function `getValue` from `improvedFunctions` and refers to global variables in `valueConversion`.
+
+    Args:
+        array (list): The input array of numerical values.
+        oldColNam (str): The name of the existing column with the original prefix.
+        newColNam (str): The name of the new column with the desired prefix.
+
+    Returns:
+        tuple: A tuple containing the resulting array and the updated unit.
+    """
     unit = getValue(oldColNam, "[", terminator="]", suffix="", subfunction=True)
     newUnit = getValue(newColNam, "[", terminator="]", suffix="", subfunction=True)
 
@@ -41,6 +86,19 @@ def adapterConvertPrefix(array, oldColNam, newColNam):
     raise Exception("IJS: Couldn't recognize unit prefix.")
 
 def convertPrefix(array, unit, prefix):
+    """
+    Converts the prefixes of units in an array and returns the result.
+
+    Refers to the `convertPrefix` function in the `valueConversion` module.
+
+    Args:
+        array (list): The input array of numerical values.
+        unit (str): The original unit of the values.
+        prefix (str): The desired prefix for the new unit.
+
+    Returns:
+        tuple: A tuple containing the resulting array and the updated unit.
+    """
     res = []
     for el in array:
         tmp =  valueConversion.convertPrefix((el, unit), prefix)

@@ -4,7 +4,12 @@ import pandas as pd
 import valueConversion
 import os
 import datetime
+from math import log, log1p
+
 class brlopack:
+    """
+    Class with structure (file, table, column/constant)
+    """
     # self.data = dict[file][table][column]
     # self.wantedFiles = []
     # self.plotFiles {file:[True, False, True]}
@@ -12,6 +17,15 @@ class brlopack:
 
     #@property
     def getConstants(self, unit = ""):
+        """
+        Retrieves all constants from all loaded files and tables.
+
+        Args:
+            unit (str, optional): The unit to convert the constants to. Defaults to an empty string, meaning no conversion.
+
+        Returns:
+            dict: A nested dictionary containing all constants from all loaded files and tables.
+        """
         retVal = {}
         for file in self.tellMeFiles():
             retVal[file] = {}
@@ -22,6 +36,18 @@ class brlopack:
         return retVal
     
     def getConstant(self, file, table, const, unit = ""):
+        """
+        Retrieves a specific constant from a specified file and table.
+
+        Args:
+            file (str): The file name containing the table.
+            table (str): The table name containing the constant.
+            const (str): The name of the constant to retrieve.
+            unit (str, optional): The unit to convert the constant to. Defaults to an empty string, meaning no conversion.
+
+        Returns:
+            float or str: The value of the specified constant, or "NaN" if not found.
+        """
         try:
             if unit != "":
                 return valueConversion.convertPrefix(self.constants[file][table][const], unit[0])
@@ -31,7 +57,13 @@ class brlopack:
             return "NaN"
 
     def __init__(self, data=None):
-        self.toPlot = []
+        """
+        Initializes the brlopack object with optional data.
+
+        Args:
+            data (dict, optional): The initial data to populate the object. Defaults to None.
+        """
+        self.toPlot = [] #TODO obrisati?
         if data != None:
             self.data = data
             self.wantedFiles = (key for key in data)
@@ -39,20 +71,50 @@ class brlopack:
     
     # Tell files
     def browseDirectories(self):
+        """
+        Creates a GUI popup for the user to select a directory from which to load the files and tables.
+        """
         from tkinter import filedialog as fd 
         self.wantedFiles = fd.askopenfilenames()
 
     def tellFiles(self, files):
+        """
+        Manual selection of loaded files through a parameter instead of the GUI.
+        Setter for field wantedFiles (should initiate loading data)
+
+        Args:
+            files (list of str): The list of file paths to load.
+        """
         self.wantedFiles = files
 
     # TODO input: path, extension, bool; outcome: load all files at the path, of the correct extension. if bool, load subdirs as well
 
     def loadFiles(self, optionalFunct = None):
-        import time
+        """
+        Based on the wantedFiles field, loads the data (tables/columns) and constants. 
+        Initializes "should plot" to True for all tables.
+
+        Args:
+            optionalFunct (callable, optional): An optional function to apply during loading (such as a progressbar or smth). Defaults to None.
+
+        Raises:
+            Exception: If no files are specified to load.
+        """
+
+        import time, os.path
         #time.sleep(1)
         if self.wantedFiles == None:
             raise Exception("IJS: I don't know which files to load. Either use `browseDirectories` function or the `tellFiles` function.")
-        
+        doesntExist = []
+        notafile = []
+        for file in self.wantedFiles:
+            if not os.path.exists(file):
+                doesntExist.append(file)
+            if not os.path.isfile(file):
+                notafile.append(file)
+        if doesntExist != [] or notafile != []:
+            raise Exception(f"IJS: The following paths do not exist: {doesntExist}, and these are not files: {notafile}")
+
         self.data = {}; self.plotFiles = {}; self.constants = {}
 
         try:
@@ -75,13 +137,31 @@ class brlopack:
                 self.data[file][table].columns = self.data[file][table].columns.str.replace('°', '')
                 self.data[file][table].columns = self.data[file][table].columns.str.replace('º', '')
         
-        print("tell me what exception")
+        #print("tell me what exception")
 
     # Inform of data 
     def tellMeFiles(self):
+        """
+        Getter for field wantedFiles
+
+        Returns:
+        list: A list of loaded file names.
+        """
         return self.wantedFiles
     
     def tellMeTablesInFile(self, file):
+        """
+        Getter for list of tables, given a file.
+
+        Args:
+        file (str): The file name containing the tables.
+
+        Returns:
+            list: A list of table names in the specified file.
+
+        Raises:
+            Exception: If the specified file is not found.
+        """
         try:
             retVal = []
             for key in self.data[file]:
@@ -91,24 +171,76 @@ class brlopack:
             raise Exception("IJS: No file named `{}` found here. Check for typos. Check if you called the `loadFiles` method.".format(file))
     
     def tellMeColumnsInTable(self, file, table):
+        """
+        Getter for list of columns, given a file AND table.
+        Note: still not determined if all tables of a file should have the same columns; up to debate.
+            Even less clear if that should apply for all files in a session.
+        
+        Args:
+            file (str): The file name containing the table.
+            table (str): The table name containing the columns.
+
+        Returns:
+            list: A list of column names in the specified table within the specified file.
+
+        Raises:
+            Exception: If the specified table is not found in the specified file.
+        """
         try:
             return [key for key in self.data[file][table]]
         except:
             raise Exception("IJS: No table named `{}` found in file `{}`. Check for typos.".format(table, file))
 
     def shouldIPlotFile(self, fileName, value):
+        """
+        Setter for plotFiles field. Applies same value to all tables of a file.
+        Triggers when checking and unchecking checkbox of a file in left part of the GUI.
+
+        Args:
+            fileName (str): The name of the file to update the plotting status for.
+            value (bool): The plotting status to set for all tables in the specified file.
+        """
         for table in self.plotFiles[fileName]:
             self.plotFiles[fileName][table] = value
 
     def shouldIPlotTables(self, fileName, table, truthValue):
+        """
+        Setter for plotFiles field. Applies to only one table of a file.
+        Triggers when checking and unchecking checkbox of a table int left part of the GUI.
+        """
         self.plotFiles[fileName][table] = truthValue
     
     def resetPlotSettings(self):
+        """
+        Set the value of plotFiles for all files and tables back to the default (True)
+        
+        Note: Not sure if it is ever triggered by GUI in current version. Maybe when refreshing?
+        """
         for file in self.tellMeFiles():
             self.shouldIPlotFile(file, True)
 
     readyForPlotting = None
     def plotData(self, x_axis_columnName, y_axes_columnNames, fileName=None, tableNames=None, conditionColName=None, minimumValue=None, plotType="Line", show=True, showLegend=True, showGrid=False):    
+        """
+        Plots data of multiple y axes given a common x axis. (Note: Implemented through subplots, but overlapping also possible!!!)    
+        
+        Can perform on a subset of selected files/tables.
+        Can be with or without legend and grid.
+        Further customization possible through arguments.
+
+        Args:
+            x_axis_columnName (str): The column name for the x-axis.
+            y_axes_columnNames (list): A list of column names for the y-axes.
+            fileName (str or list, optional): The name(s) of the file(s) to plot. Defaults to None, meaning all files.
+            tableNames (list, optional): A list of table names to plot. Defaults to None, meaning all tables.
+            conditionColName (str, optional): Not used in the current implementation.
+            minimumValue (float, optional): Not used in the current implementation.
+            plotType (str, optional): Type of plot ("Line", "Dotted", "Both"). Defaults to "Line".
+            show (bool, optional): Whether to display the plot. Defaults to True. 
+            showLegend (bool, optional): Whether to display the legend. Defaults to True.
+            showGrid (bool, optional): Whether to display the grid. Defaults to False.
+        """
+        
         n = len(y_axes_columnNames)
         self.fig, self.axs = plt.subplots(n)
         x_min = 1.7976931348623157e+308 
@@ -169,6 +301,18 @@ class brlopack:
         
 
     def exportToExcel(self, location=None, columnNames=None, filesToPlot = None, tablesToPlot = None):
+        """
+        Exports all data of the session into an Excel xlsx file to a given filepath (or by default to the location where data was loaded from)
+        
+        You can exclude uninteresting files, tables, even columns (same like with the plotting)
+        Exported filename format is "Brillo export [date time].xlsx" by default.
+
+        Args:
+            location (str, optional): The file path to export to. Defaults to the location where data was loaded from.
+            columnNames (list, optional): A list of column names to export. Defaults to all columns.
+            filesToPlot (list, optional): A list of file names to export. Defaults to all files.
+            tablesToPlot (list, optional): A list of table names to export. Defaults to all tables.
+        """
         if location == None or location == False:
             location = os.path.dirname(self.tellMeFiles()[0])
         now = datetime.datetime.now()
@@ -188,7 +332,7 @@ class brlopack:
 
         for file in filesToPlot:
             tmp = os.path.basename(file)
-            output_file_name = os.path.join(location, tmp +'_output.xlsx')
+            output_file_name = os.path.join(location, tmp +'_output.xlsx') #TODO make it an arg
             with pd.ExcelWriter(output_file_name) as writer:  
                 for table in self.tellMeTablesInFile(file):
                     if tablesToPlot != None:
@@ -197,21 +341,35 @@ class brlopack:
             os.startfile(output_file_name)
 
     def doOperation(self, operation, columnName, newColumnName, constName):
+        """
+        Performs a given operation/function from one input column to a newly created output column.
+        Can also use 1 constant from its table (depending on if the operation needs it or uses it; and if it is found)
+        
+        Args:
+            operation (function): The function to apply to the column.
+            columnName (str): The name of the input column.
+            newColumnName (str): The name of the output column.
+            constName (str, optional): The name of a constant to use in the operation. Defaults to None.
+        """
         for file in self.tellMeFiles():
             for table in self.tellMeTablesInFile(file):
                 if constName!=None:
                     try:
                         (constantVal, constantUnit) = self.constants[file][table][constName]
                     except:
-                        continue
+                        continue #TODO: is the behaviour of constVal defined here??
                 else: constantVal = None
                 arr = []
                 for el in self.data[file][table][columnName]:
                     try: arr.append(operation(el, constantVal))
-                    except: arr.append("NaN")
+                    except: arr.append("NaN") #TODO: I think this is the answer to the previous question
 
                 self.data[file][table][newColumnName] = arr
 
+    def logN(self, columnName, newColumnName, constName=None): self.doOperation(lambda el, const:log1p(el), columnName, newColumnName, constName)
+
+    def logConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:log(el, const), columnName, newColumnName, constName)
+    #TODO logs dont do anything
     def divideConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el/const, columnName, newColumnName, constName)
 
     def multiplyConstant(self, columnName, newColumnName, constName): self.doOperation(lambda el, const:el*const, columnName, newColumnName, constName)
@@ -226,7 +384,16 @@ class brlopack:
     
     def sqrtColumn(self, columnName, newColumnName, constName=None): self.doOperation(lambda el, const:el**0.5, columnName, newColumnName, constName)
 
-    def averageTwoConstants(self, columnName, newColumnName, secondColumn):
+    def averageTwoColumns(self, columnName, newColumnName, secondColumn):
+        """
+        Takes two columns, creates new column as their average.
+        Works over all files and all tables.
+
+        Args:   
+            columnName (str): The name of the first input column.
+            newColumnName (str): The name of the output column.
+            secondColumn (str): The name of the second input column.
+        """
         for file in self.tellMeFiles():
             for table in self.tellMeTablesInFile(file):
                 tmpArr = []
@@ -244,6 +411,15 @@ class brlopack:
                 tableData[newColumnName] = tmpArr
 
     def changeUnitOfConstant(self, constantName, unitPrefix):
+        """
+        Looks for all occurences of constant in all files and tables.
+        Sets all occurences to the same unit.
+        Note: still not agreed if all file/tables should have the same set of constants!
+
+        Args:
+            constantName (str): The name of the constant to change the unit.
+            unitPrefix (str): The new unit prefix to apply to the constant.
+        """
         for file in self.tellMeFiles():
             for table in self.tellMeTablesInFile(file):
                 if constantName not in self.constants[file][table]: 
@@ -251,6 +427,14 @@ class brlopack:
                 self.constants[file][table][constantName] = valueConversion.convertPrefix(self.constants[file][table][constantName], unitPrefix)
 
     def separateData(self, columnName):
+        """
+        Separating data into rise, flat and drop.
+        Used for Probostat data.
+        Note: Untested/undefined behaviour for multiple files or table. Usually used after stitching multiple files into one and only file.
+    
+        Args:
+            columnName (str): The name of the column used for the separation criteria.
+        """
         from splitting.newSplittingDF import forDataFrame
         for file in self.tellMeFiles():
             table = self.tellMeTablesInFile(file)[0]

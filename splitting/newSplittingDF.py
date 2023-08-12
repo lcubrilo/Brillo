@@ -4,6 +4,18 @@ import matplotlib.pyplot as plt
 pd.DataFrame().iloc()
 
 def removeAdjacentValues(df, columnName, val, epsilon=2):
+    """
+    Removes values in the given column that are adjacent to a specific value within a given epsilon range.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        columnName (str): The name of the column to search for adjacent values.
+        val (float): The value to check for adjacency.
+        epsilon (float, optional): The range within which a value is considered adjacent. Defaults to 2.
+
+    Returns:
+        tuple: Two DataFrames, the first containing adjacent values and the second containing the rest.
+    """
     #newDF = pd.DataFrame(); adjacentDF = pd.DataFrame()
     adjacent = []; rest = []
     for i, row in enumerate(df[columnName]):
@@ -20,6 +32,17 @@ def removeAdjacentValues(df, columnName, val, epsilon=2):
     return adjacent, rest
 
 def removeMinMax(df, columnName):
+    """
+    Removes the minimum and maximum values in the given column of the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        columnName (str): The name of the column to remove the minimum and maximum values from.
+
+    Returns:
+        tuple: Three DataFrames, the first containing the minimum values, the second containing the remaining DataFrame
+               without the minimum and maximum values, and the third containing the maximum values.
+    """
     listOfNumbers = []
     for el in list(df[columnName]):
         if type(el) == float and not pd.isna(el):
@@ -34,6 +57,16 @@ def removeMinMax(df, columnName):
     return minn, df2, maxx
 
 def are_adjacent_integers(df):
+    """
+    Checks if the integers in the first column of the DataFrame are adjacent.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        tuple: A boolean value indicating if the integers are adjacent, and an integer representing the index of the
+               problematic integer if not adjacent.
+    """
     index = list(df.columns)[0]
     for i in range(len(df) - 1):
         row1 = df.iloc[i]
@@ -45,6 +78,24 @@ def are_adjacent_integers(df):
     return True, -1
 
 def chop_up_to_be_adjacent(df, columnName):
+    """
+    Splits the DataFrame into segments of adjacent integers (for now - difference of precisely one - this could be modified in the future) in the specified column (for example the first one being indeces).
+    
+    This is useful for detecting and handling gaps in a column of integers, especially after intentionally removing sections of rows (e.g., via removeMinMax), to ensure that the remaining segments maintain adjacency.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to be chopped, potentially with missing sections.
+        columnName (str): The name of the column with integers for adjacency check.
+
+    Returns:
+        list: A list of DataFrames, each containing a segment of adjacent integers, preserving continuity.
+
+    Example:
+        df = pd.DataFrame({'A': [1, 2, 4, 5, 7]})
+        segments = chop_up_to_be_adjacent(df, 'A')  
+        # This returns three DataFrames with adjacent integers
+        # [[1,2], [4,5], [7]]
+    """
     retVal = []
     df2 = df
     boolVal, problemIndex = are_adjacent_integers(df2)
@@ -59,6 +110,16 @@ def chop_up_to_be_adjacent(df, columnName):
 
 
 def isRisingFalling(array):
+    """
+    Determines if the values in the array are rising or falling.
+
+    Args:
+        array (list): The input array of float values.
+
+    Returns:
+        float: A coefficient representing the rising or falling trend. Positive for rising, negative for falling, and
+               zero for flat.
+    """
     n = len(array)
     first, second = array[:n//2], array[n//2:]
     avg1, avg2 = sum(first)/(n//2), sum(second)/(n-n//2)
@@ -69,6 +130,16 @@ def isRisingFalling(array):
 
 
 def forDataFrame(df, columnName = "AVG_T"):
+    """
+    Processes the DataFrame to categorize data into rising, falling, or flat trends.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        columnName (str, optional): The name of the column to analyze. Defaults to "AVG_T".
+
+    Returns:
+        tuple: A dictionary containing DataFrames for "flat," "rise," and "drop" trends, and an empty dictionary for each trend.
+    """
     minn, df2, maxx = removeMinMax(df, columnName)
     retVal = {"flat": pd.concat([minn, maxx]), "rise":pd.DataFrame(), "drop":pd.DataFrame()}
     #retVal = {"flat":[minn, maxx], "rise":[], "drop":[]}
