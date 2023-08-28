@@ -55,6 +55,18 @@ class brlopack:
                 return self.constants[file][table][const]
         except:
             return "NaN"
+    
+    def create_copy(self):
+        import copy
+        retVal = brlopack()
+        retVal.constants = copy.deepcopy(self.constants)
+        retVal.data = copy.deepcopy(self.data)
+        retVal.plotFiles = copy.deepcopy(self.plotFiles)
+        retVal.readyForPlotting = copy.deepcopy(self.readyForPlotting)
+        retVal.toPlot = copy.deepcopy(self.toPlot)
+        retVal.wantedFiles = copy.deepcopy(self.wantedFiles)
+        return retVal
+        
 
     def __init__(self, data=None):
         """
@@ -232,7 +244,7 @@ class brlopack:
             x_axis_columnName (str): The column name for the x-axis.
             y_axes_columnNames (list): A list of column names for the y-axes.
             fileName (str or list, optional): The name(s) of the file(s) to plot. Defaults to None, meaning all files.
-            tableNames (list, optional): A list of table names to plot. Defaults to None, meaning all tables.
+            tableNames (dictionary, optional): fileName is key, while a list of table names to plot is value. Defaults to None, meaning all tables.
             conditionColName (str, optional): Not used in the current implementation.
             minimumValue (float, optional): Not used in the current implementation.
             plotType (str, optional): Type of plot ("Line", "Dotted", "Both"). Defaults to "Line".
@@ -439,16 +451,9 @@ class brlopack:
         """
         from splitting.newSplittingDF import forDataFrame
         for file in self.tellMeFiles():
-            table = self.tellMeTablesInFile(file)[0]
+            table = self.tellMeTablesInFile(file)[0] # assumes only one table in the file needs to be split
             dataFrame = self.data[file][table]
-            self.data[file], self.constants[file] = forDataFrame(dataFrame, columnName)
-            
-            # Fixed plotting bug!
-            self.plotFiles = dict()
-            for fileName in self.tellMeFiles():
-                self.plotFiles[fileName] = dict()
-                for tableName in self.tellMeTablesInFile(fileName):
-                    self.plotFiles[fileName][tableName] = True
+            self.data[file], self.constants[file], self.plotFiles[file] = forDataFrame(dataFrame, columnName)
                 
 # tests
 def testLoad():
