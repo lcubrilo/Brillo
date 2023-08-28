@@ -104,9 +104,11 @@ def chop_up_to_be_adjacent(df, columnName):
         retVal.append(first)
         df2 = second
         boolVal, problemIndex = are_adjacent_integers(df2)
-    if not second.empty:
-        retVal.append(second)
-    return retVal
+    try:
+        if not second.empty:
+            retVal.append(second)
+    finally:
+        return retVal
 
 
 def isRisingFalling(array):
@@ -144,17 +146,18 @@ def forDataFrame(df, columnName = "AVG_T"):
     retVal = {"flat": pd.concat([minn, maxx]), "rise":pd.DataFrame(), "drop":pd.DataFrame()}
     #retVal = {"flat":[minn, maxx], "rise":[], "drop":[]}
     #df2Indeces = df["Index"]
-    severalDF = chop_up_to_be_adjacent(df2, columnName)
-    for someDF in severalDF:
-        coefficient = isRisingFalling(someDF[columnName])
-        if coefficient > 0:
-            retVal["rise"] = pd.concat([retVal["rise"], someDF])#.append(someDF)
-        elif coefficient < 0:
-            retVal["drop"] = pd.concat([retVal["drop"], someDF])#.append(someDF)
-        elif coefficient == 0:
-            retVal["flat"] = pd.concat([retVal["flat"], someDF])#.append(someDF)
-        else:
-            raise Exception("buraz trenutak")
+    if not df2.empty:
+        severalDF = chop_up_to_be_adjacent(df2, columnName)
+        for someDF in severalDF:
+            coefficient = isRisingFalling(someDF[columnName])
+            if coefficient > 0:
+                retVal["rise"] = pd.concat([retVal["rise"], someDF])#.append(someDF)
+            elif coefficient < 0:
+                retVal["drop"] = pd.concat([retVal["drop"], someDF])#.append(someDF)
+            elif coefficient == 0:
+                retVal["flat"] = pd.concat([retVal["flat"], someDF])#.append(someDF)
+            else:
+                raise Exception("buraz trenutak")
     
     print("into loop")
     keys = [key for key in retVal]

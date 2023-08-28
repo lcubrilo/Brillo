@@ -428,6 +428,8 @@ class brlopack:
 
     def separateData(self, columnName):
         """
+        BIG NOTE: Assumes data follows the pattern of ____/¯¯¯¯¯¯¯\_ (low, rise, high, drop) due to many bugs for a generalized version.
+        BIG NOTE 2: If generalized version is needed, let me know, it will take some time.
         Separating data into rise, flat and drop.
         Used for Probostat data.
         Note: Untested/undefined behaviour for multiple files or table. Usually used after stitching multiple files into one and only file.
@@ -440,7 +442,13 @@ class brlopack:
             table = self.tellMeTablesInFile(file)[0]
             dataFrame = self.data[file][table]
             self.data[file], self.constants[file] = forDataFrame(dataFrame, columnName)
-                
+            
+            # Fixed plotting bug!
+            self.plotFiles = dict()
+            for fileName in self.tellMeFiles():
+                self.plotFiles[fileName] = dict()
+                for tableName in self.tellMeTablesInFile(fileName):
+                    self.plotFiles[fileName][tableName] = True
                 
 # tests
 def testLoad():

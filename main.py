@@ -45,6 +45,7 @@ class MyApplicationMainWindow(QMainWindow):
             self.browseFiles(dontBrowse=True, dontLoad=True)
         except:
             QLoadingMessageBox(self, "Splitting failed.")
+            self.updateColumns()
 
     def update_progress(self):
         step = int(self.progressBar.maximum()/1.4**self.coef)

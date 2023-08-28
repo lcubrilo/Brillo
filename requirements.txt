@@ -3,3 +3,4 @@ PyQt5
 matplotlib
 qt_material
 pandas
+openpyxl

@@ -1,0 +1,10 @@
+{
+    "name": "My Codespace",
+    "image": "python:3.9",
+    "extensions": ["ms-python.python"],
+    "settings": {
+        "python.pythonPath": "/usr/local/bin/python"
+    },
+    "postCreateCommand": "pip install -r requirements.txt"
+}
+// First version of the devcontainer for GitHub Codespace
