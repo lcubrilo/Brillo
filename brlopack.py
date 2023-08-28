@@ -422,6 +422,10 @@ class brlopack:
 
                 tableData[newColumnName] = tmpArr
 
+    def changeUnitOfColumn(self, columnName, newColumnName):
+        from arrayConversion import adapter_ConvertPrefix
+        adapter_ConvertPrefix(self, columnName, newColumnName)
+
     def changeUnitOfConstant(self, constantName, unitPrefix):
         """
         Looks for all occurences of constant in all files and tables.
