@@ -4,3 +4,4 @@ matplotlib
 qt_material
 pandas
 openpyxl
+csvkit
