@@ -131,12 +131,15 @@ class brlopack:
 
         try:
             if len(self.wantedFiles) > 1 and self.wantedFiles[0].endswith(".csv"): #TODO very ugly workaround
+                print("Will load probostat files")
                 self.data["Probostat"], self.constants["Probostat"] = stitchUp_probostatFiles(self.wantedFiles, "time [min]")
                 self.wantedFiles = ["Probostat"]
             else:
+                print("Will not load probostat files")
                 for file in self.wantedFiles:
                     self.data[file], self.constants[file] = whichFileToLoad(file, len(self.wantedFiles))
         except:
+            print("Exception found during file loading, trying alternative")
             for file in self.wantedFiles:
                 self.data[file], self.constants[file] = whichFileToLoad(file, len(self.wantedFiles))
         
