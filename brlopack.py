@@ -138,8 +138,9 @@ class brlopack:
                 print("Will not load probostat files")
                 for file in self.wantedFiles:
                     self.data[file], self.constants[file] = whichFileToLoad(file, len(self.wantedFiles))
-        except:
+        except Exception as e:
             print("Exception found during file loading, trying alternative")
+            print(f"Exception: {e}")
             for file in self.wantedFiles:
                 self.data[file], self.constants[file] = whichFileToLoad(file, len(self.wantedFiles))
         
