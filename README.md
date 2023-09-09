@@ -1,5 +1,7 @@
 # Brillo
-![Cover art](https://github.com/lcubrilo/Brillo/blob/reformed/cover%20art.png)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lcubrilo/Brillo/reformed?labpath=ProbostatShowcaseNotebook.ipynb)
+
+![Cover art](https://github.com/lcubrilo/Brillo/blob/reformed/cover%20art.png)  
 A Python GUI-based cross-platform app for tabular data processing and visualization.  
 The underlying "engine" (`brlopack` package and other helper scripts) of the app can be run from the Jupyter Notebooks provided.  
 
