@@ -354,7 +354,10 @@ class brlopack:
                     if tablesToPlot != None:
                         if table not in tablesToPlot[file]: continue
                     self.data[file][table][columnNames].to_excel(writer, sheet_name=table)
-            os.startfile(output_file_name)
+            try:
+                os.startfile(output_file_name)
+            except Exception as e:
+                print("Couldn't open the outputted Excel file: ", e)
 
     def doOperation(self, operation, columnName, newColumnName, constName):
         """
