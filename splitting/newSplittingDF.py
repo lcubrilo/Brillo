@@ -190,7 +190,7 @@ def forDataFrame(df, columnName = "AVG_T"):
         #print('iter')
         if retVal[key].empty:
             retVal.pop(key)
-        else:
+        #else:
             #print("no need to pop")
         #print("next iteration")
     #print("all good")
