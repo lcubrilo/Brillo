@@ -1,5 +1,5 @@
 # Brillo
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lcubrilo/Brillo/reformed?labpath=ProbostatShowcaseNotebook.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lcubrilo/Brillo/reformed?filepath=ProbostatShowcaseNotebook.ipynb)
 
 ![Cover art](https://github.com/lcubrilo/Brillo/blob/reformed/cover%20art.png)  
 A Python GUI-based cross-platform app for tabular data processing and visualization.  
