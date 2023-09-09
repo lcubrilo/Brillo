@@ -261,7 +261,7 @@ def load_probostatFile_stitching(fileName, subFunction=False):
         Exception: If the provided file does not have the .csv extension or if the file is not valid.
     """
     if not fileName.endswith(".csv"): raise Exception("Expected a .csv file of Probostat.")
-    f = open(fileName, "r") # open the file
+    f = open(fileName, "r", encoding='latin1', errors='replace') # open the file
     matrix = [] # get an empty table ready
     global x_axis
     x_axis = None
