@@ -9,4 +9,5 @@ jupyter-nbextension enable rise --py --sys-prefix
 echo "export BINDER_SERVICE_HOST=true" >> $CONDA_DIR/etc/conda/activate.d/env_vars.sh
 
 # Move the runPresentation.js to its appropriate location
+mkdir -p $CONDA_DIR/share/jupyter/nbextensions/
 mv runPresentation.js $CONDA_DIR/share/jupyter/nbextensions/
