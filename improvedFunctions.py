@@ -396,9 +396,19 @@ def load_csv(fileName):
     Returns:
         tuple: Dictionary containing the DataFrame, and an empty dictionary for constants.
     """
+    # First remove all instances of 0xb0 character (degree)
+    import csv
+
+    with open('original.csv', 'r') as infile:
+        rows = [[cell.replace('\xb0', '') for cell in row] for row in csv.reader(infile)]
+
+    with open('original.csv', 'w', newline='') as outfile:
+        csv.writer(outfile).writerows(rows)
+
+    #find separator
     import subprocess
 
-    result = subprocess.run(['csvstat', 'file.csv'], stdout=subprocess.PIPE)
+    result = subprocess.run(['csvstat', fileName], stdout=subprocess.PIPE)
     output = result.stdout.decode()
 
     try:
