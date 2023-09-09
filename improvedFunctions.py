@@ -387,36 +387,12 @@ def load_excel(fileName):
     return dataFrames, constants
 
 def load_csv(fileName):
-    """
-    Loads data from a .csv file into a DataFrame using the appropriate delimiter.
-
-    Args:
-        fileName (str): Path to the .csv file to be read.
-
-    Returns:
-        tuple: Dictionary containing the DataFrame, and an empty dictionary for constants.
-    """
-    # First remove all instances of 0xb0 character (degree)
-    import csv
-
-    with open(fileName, 'r') as infile:
-        rows = [[cell.replace('\xb0', '') for cell in row] for row in csv.reader(infile)]
-
-    with open(fileName, 'w', newline='') as outfile:
-        csv.writer(outfile).writerows(rows)
-
-    #find separator
-    import subprocess
-
-    result = subprocess.run(['csvstat', fileName], stdout=subprocess.PIPE)
-    output = result.stdout.decode()
-
     try:
-        delimiter = output.split('Delimiter: ')[1].split('\n')[0]
-
-        return {"csv table":pd.read_csv(fileName, sep=delimiter)}, {"csv table":dict()}
-    except:
-        return {"csv table":pd.read_csv(fileName)}, {"csv table":dict()}
+        df = pd.read_csv(fileName, encoding='utf-8')
+    except UnicodeDecodeError:
+        df = pd.read_csv(fileName, encoding='ISO-8859-1')
+        
+    return {"csv table": df}, {"csv table": {}}
 
 def whichFileToLoad(fileName, n):
     """
