@@ -18,17 +18,27 @@ L___**4.5 Unit conversions!**
 <div style="page-break-after: always"></div>
 
 # Step 0: Installing external packages missing on the system
-This project is using Python packages developed by members of the open-source community, and they are necessary for you to be able to run these scripts.  
-If you have a fresh install of Python on this machine, you will need to install them.  
-
-If you already installed the prerequisites, feel free to skip.
+We need to set up some things before running the rest of the notebook
 
 
 ```python
-#!pip install -r requirements.txt
+import sys
+import os
+import subprocess
+
+if 'google.colab' in sys.modules:
+    print("Running in Google Colab")
+    subprocess.run(['git', 'clone', 'https://github.com/lcubrilo/Brillo'])
+    os.chdir('Brillo/')
+else:
+    from NotebookEnvironmentSetup import main
+    main()
+
 ```
 
-*Hint*: I've commented the line above so it doesn't automatically run when you click `Run all`. To make it runnable, delete the `#` symbol at the beginning of the line. (Keep the `!` symbol)
+    Assuming local environment...
+    We already had all necessary packages.
+    
 
 ---
 <div style="page-break-after: always"></div>
@@ -53,16 +63,10 @@ After that we will load some files into that object. Then we can do whichever op
 probostat_session = brlopack.brlopack()
 ```
 
-
-    
-![png](ProbostatShowcaseNotebook_files/ProbostatShowcaseNotebook_8_0.png)
-    
-
-
 Now let's load the **Probostat** data files into `probostat_session`.  
 Please make sure the files were exported from Origin in the `.csv` format :)  
 
-You can find more details below (optinal):
+You can find more details below (optional):
 <details><summary>Click here</summary>
 
 Note 1: you may also choose to load files that were exported from `brlopack` (`.xslx` format)  
@@ -156,6 +160,9 @@ loadedFiles
     ['Probostat']
 
 
+
+### Some questions
+If not interested, feel free to skip
 
 **Question 1: Why does `tellMeFiles()` now give us one file** (named 'Probostat') **; when we loaded 4?**  
 *Answer 1*
@@ -575,23 +582,6 @@ There is also `.plot()` which may require more care (but in less lines of code t
 
 ```python
 table.info()
-
-"""
-plotKinds = ['line', 'hist', 'scatter', 'box', 'area', 'kde', 'density', 'hexbin']
-newTable = table.dropna()
-from matplotlib import pyplot as plt
-for kind in plotKinds:
-    print(kind)
-    try:
-        newTable.plot(x='time [min]', kind=kind, subplots=True)
-    except:
-        try:
-            newTable.plot(kind=kind)
-        except Exception as e:
-            print(e)
-            continue
-    plt.show()
-"""
 ```
 
     <class 'pandas.core.frame.DataFrame'>
@@ -614,6 +604,30 @@ for kind in plotKinds:
      12  TCC (B)  [C]              4542 non-null   float64
     dtypes: float64(13)
     memory usage: 1.7 MB
+    
+
+
+```python
+"""plotKinds = ['line', 'hist', 'scatter', 'box', 'area', 'kde', 'density', 'hexbin']
+newTable = table.dropna()
+from matplotlib import pyplot as plt
+for kind in plotKinds:
+    print(kind)
+    try:
+        newTable.plot(x='time [min]', kind=kind, subplots=True)
+    except:
+        try:
+            newTable.plot(kind=kind)
+        except Exception as e:
+            print(e)
+            continue
+    plt.show()"""
+```
+
+
+
+
+    "plotKinds = ['line', 'hist', 'scatter', 'box', 'area', 'kde', 'density', 'hexbin']\nnewTable = table.dropna()\nfrom matplotlib import pyplot as plt\nfor kind in plotKinds:\n    print(kind)\n    try:\n        newTable.plot(x='time [min]', kind=kind, subplots=True)\n    except:\n        try:\n            newTable.plot(kind=kind)\n        except Exception as e:\n            print(e)\n            continue\n    plt.show()"
 
 
 
@@ -650,15 +664,14 @@ debug_session = probostat_session.create_copy()
 ```
 
 
-    
-![png](ProbostatShowcaseNotebook_files/ProbostatShowcaseNotebook_35_0.png)
-    
-
-
-
 ```python
 probostat_session.separateData("Average (TCT+TCC)/2")
 ```
+
+    c:\Users\Milan\Documents\git clones\Brillo\splitting\newSplittingDF.py:150: FutureWarning: The behavior of `series[i:j]` with an integer-dtype index is deprecated. In a future version, this will be treated as *label-based* indexing, consistent with e.g. `series[i]` lookups. To retain the old behavior, use `series.iloc[i:j]`. To get the future behavior, use `series.loc[i:j]`.
+      first, second = array[:n//2], array[n//2:]
+    c:\Users\Milan\Documents\git clones\Brillo\splitting\newSplittingDF.py:150: FutureWarning: The behavior of `series[i:j]` with an integer-dtype index is deprecated. In a future version, this will be treated as *label-based* indexing, consistent with e.g. `series[i]` lookups. To retain the old behavior, use `series.iloc[i:j]`. To get the future behavior, use `series.loc[i:j]`.
+      first, second = array[:n//2], array[n//2:]
     
 
 Now let us observe the effects of this operation!
@@ -766,21 +779,18 @@ You are also able to do all other *decimal and prefix based* unit conversions (s
 
 **Note 2**: ***You must use <span style="color:red;">square brackets</span> for the units, otherwise code will not crash.***
 
-Let us now see the changes to our table after this operation!
+Let us now see the changes to our table after this operation!  
 **Note**: you will have to scroll all the way to the right to see the newly added columns.
 
 
 ```python
 for table in ['rise', 'flat', 'drop', 'nan']:
-    print(probostat_session.tellMeColumnsInTable('Probostat', 'flat'))
+    print(probostat_session.tellMeColumnsInTable('Probostat', table))
 ```
 
     ['time [min]', '2pt_fwd_resistance [Ohm]', '2pt_rev_resistance [Ohm]', 'DMM avg R [Ohm]', 'Flow [ml/min]', 'R (+1V) [Ohm]', 'Electrometer avg [Ohm]', 'R (-1V) [Ohm]', 'Furnace temp  [C]', 'Furnace cooling  [C]', 'Average (TCT+TCC)/2', 'TCT  [C]', 'TCC (B)  [C]', 'Kvadriran otpor [Ohm^2]', '2pt_fwd_resistance [mOhm]']
-
     ['time [min]', '2pt_fwd_resistance [Ohm]', '2pt_rev_resistance [Ohm]', 'DMM avg R [Ohm]', 'Flow [ml/min]', 'R (+1V) [Ohm]', 'Electrometer avg [Ohm]', 'R (-1V) [Ohm]', 'Furnace temp  [C]', 'Furnace cooling  [C]', 'Average (TCT+TCC)/2', 'TCT  [C]', 'TCC (B)  [C]', 'Kvadriran otpor [Ohm^2]', '2pt_fwd_resistance [mOhm]']
-
     ['time [min]', '2pt_fwd_resistance [Ohm]', '2pt_rev_resistance [Ohm]', 'DMM avg R [Ohm]', 'Flow [ml/min]', 'R (+1V) [Ohm]', 'Electrometer avg [Ohm]', 'R (-1V) [Ohm]', 'Furnace temp  [C]', 'Furnace cooling  [C]', 'Average (TCT+TCC)/2', 'TCT  [C]', 'TCC (B)  [C]', 'Kvadriran otpor [Ohm^2]', '2pt_fwd_resistance [mOhm]']
-
     ['time [min]', '2pt_fwd_resistance [Ohm]', '2pt_rev_resistance [Ohm]', 'DMM avg R [Ohm]', 'Flow [ml/min]', 'R (+1V) [Ohm]', 'Electrometer avg [Ohm]', 'R (-1V) [Ohm]', 'Furnace temp  [C]', 'Furnace cooling  [C]', 'Average (TCT+TCC)/2', 'TCT  [C]', 'TCC (B)  [C]', 'Kvadriran otpor [Ohm^2]', '2pt_fwd_resistance [mOhm]']
     
 
@@ -813,7 +823,7 @@ probostat_session.plotData(x_axis, y_axes, None, None, None, None, "Dotted", sho
 
 
     
-![png](ProbostatShowcaseNotebook_files/ProbostatShowcaseNotebook_54_0.png)
+![png](ProbostatShowcaseNotebook_files/ProbostatShowcaseNotebook_55_0.png)
     
 
 
