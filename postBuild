@@ -1,3 +1,4 @@
+#!/bin/bash
 # Install RISE for interactive slide shows
 pip install RISE
 
@@ -6,3 +7,6 @@ jupyter-nbextension enable rise --py --sys-prefix
 
 # Optionally set an environment variable to signify this is a Binder instance
 echo "export BINDER_SERVICE_HOST=true" >> $CONDA_DIR/etc/conda/activate.d/env_vars.sh
+
+# Move the runPresentation.js to its appropriate location
+mv runPresentation.js $CONDA_DIR/share/jupyter/nbextensions/
