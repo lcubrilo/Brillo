@@ -184,16 +184,16 @@ def forDataFrame(df, columnName = "AVG_T"):
             else:
                 raise Exception("buraz trenutak")
     
-    print("into loop")
+    #print("into loop")
     keys = [key for key in retVal]
     for key in keys:
-        print('iter')
+        #print('iter')
         if retVal[key].empty:
             retVal.pop(key)
         else:
-            print("no need to pop")
-        print("next iteration")
-    print("all good")
+            #print("no need to pop")
+        #print("next iteration")
+    #print("all good")
 
     data = retVal
     constants = {"flat":{}, "rise":{}, "drop":{}, "nan":{}}

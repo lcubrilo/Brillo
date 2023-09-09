@@ -388,9 +388,9 @@ def load_excel(fileName):
 
 def load_csv(fileName):
     try:
-        df = pd.read_csv(fileName, encoding='utf-8')
+        df = pd.read_csv(fileName, encoding='utf-8', encoding_errors=replace)
     except UnicodeDecodeError:
-        df = pd.read_csv(fileName, encoding='ISO-8859-1')
+        df = pd.read_csv(fileName, encoding='ISO-8859-1', encoding_errors=replace)
         
     return {"csv table": df}, {"csv table": {}}
 

@@ -79,7 +79,7 @@ class brlopack:
         if data != None:
             self.data = data
             self.wantedFiles = (key for key in data)
-        self.fig, self.ax = plt.subplots()
+        
     
     # Tell files
     def browseDirectories(self):
