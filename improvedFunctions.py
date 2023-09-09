@@ -399,10 +399,10 @@ def load_csv(fileName):
     # First remove all instances of 0xb0 character (degree)
     import csv
 
-    with open('original.csv', 'r') as infile:
+    with open(fileName, 'r') as infile:
         rows = [[cell.replace('\xb0', '') for cell in row] for row in csv.reader(infile)]
 
-    with open('original.csv', 'w', newline='') as outfile:
+    with open(fileName, 'w', newline='') as outfile:
         csv.writer(outfile).writerows(rows)
 
     #find separator
