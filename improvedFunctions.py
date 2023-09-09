@@ -400,9 +400,13 @@ def load_csv(fileName):
 
     result = subprocess.run(['csvstat', 'file.csv'], stdout=subprocess.PIPE)
     output = result.stdout.decode()
-    delimiter = output.split('Delimiter: ')[1].split('\n')[0]
 
-    return {"csv table":pd.read_csv(fileName, sep=delimiter)}, {"csv table":dict()}
+    try:
+        delimiter = output.split('Delimiter: ')[1].split('\n')[0]
+
+        return {"csv table":pd.read_csv(fileName, sep=delimiter)}, {"csv table":dict()}
+    except:
+        return {"csv table":pd.read_csv(fileName)}, {"csv table":dict()}
 
 def whichFileToLoad(fileName, n):
     """
