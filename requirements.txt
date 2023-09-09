@@ -5,3 +5,4 @@ qt_material
 pandas
 openpyxl
 csvkit
+rise
