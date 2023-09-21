@@ -1,5 +1,5 @@
 # Brillo
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lcubrilo/Brillo/reformed?filepath=ProbostatShowcaseNotebook.ipynb)
+[![Open in Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lcubrilo/Brillo/reformed?filepath=ProbostatShowcaseNotebook.ipynb)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/lcubrilo/Brillo/blob/reformed/ProbostatShowcaseNotebook.ipynb)
 
 ![Cover art](https://github.com/lcubrilo/Brillo/blob/reformed/cover%20art.png)  
