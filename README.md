@@ -5,6 +5,9 @@
 
 ![Cover art](https://github.com/lcubrilo/Brillo/blob/reformed/cover%20art.png)  
 A Python GUI-based cross-platform app for tabular data processing and visualization.  
+Ability to use BrilloScript to textually describe GUI actions. 
+Built-in interpreter for loading, saving and running BrilloScript files.
+
 The underlying "engine" (`brlopack` package and other helper scripts) of the app can be run from the Jupyter Notebooks provided.  
 
 ### Dependencies
